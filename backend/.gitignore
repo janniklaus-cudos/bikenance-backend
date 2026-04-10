@@ -1,0 +1,55 @@
+# Ignore build outputs
+bin/
+obj/
+**/bin/
+**/obj/
+
+# Visual Studio and .NET temporary files
+*.user
+*.userosscache
+*.suo
+*.cache
+*.ilk
+*.log
+*.vs/
+.vs/
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# NuGet
+*.nupkg
+project.assets.json
+packages/
+.nuget/
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# npm
+node_modules/
+package-lock.json
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+*.log
+
+# Generated files
+*.g.cs
+*.generated.cs
+
+# User-specific files
+*.env
+*.env.*
