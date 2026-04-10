@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17
+    container_name: bikenance-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bikenance
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: bikenance
+    ports:
+      - "5432:5432"
+    volumes:
+      - bikenance_pgdata:/var/lib/postgresql/data
+
+volumes:
+  bikenance_pgdata:
