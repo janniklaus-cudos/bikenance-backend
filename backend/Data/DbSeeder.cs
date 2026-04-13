@@ -1,8 +1,9 @@
 
 
+using Backend.Models;
 using Backend.Data;
 
-namespace bikenance.Data;
+namespace Backend.Data;
 
 public static class DbSeeder
 {

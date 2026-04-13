@@ -8,215 +8,215 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace backend.Migrations
+namespace Backend.Migrations
 {
-    [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
-    {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
+	[DbContext(typeof(AppDbContext))]
+	partial class AppDbContextModelSnapshot : ModelSnapshot
+	{
+		protected override void BuildModel(ModelBuilder modelBuilder)
+		{
 #pragma warning disable 612, 618
-            modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.5")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+			modelBuilder
+				.HasAnnotation("ProductVersion", "10.0.5")
+				.HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+			NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Bike", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+			modelBuilder.Entity("Bike", b =>
+				{
+					b.Property<Guid>("Id")
+						.ValueGeneratedOnAdd()
+						.HasColumnType("uuid");
 
-                    b.Property<string>("Brand")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+					b.Property<string>("Brand")
+						.IsRequired()
+						.HasMaxLength(100)
+						.HasColumnType("character varying(100)");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
+					b.Property<DateTime>("CreatedAtUtc")
+						.HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("IconId")
-                        .HasColumnType("integer");
+					b.Property<int>("IconId")
+						.HasColumnType("integer");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+					b.Property<string>("Name")
+						.IsRequired()
+						.HasMaxLength(100)
+						.HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.ToTable("Bikes");
-                });
+					b.ToTable("Bikes");
+				});
 
-            modelBuilder.Entity("BikePart", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+			modelBuilder.Entity("BikePart", b =>
+				{
+					b.Property<Guid>("Id")
+						.ValueGeneratedOnAdd()
+						.HasColumnType("uuid");
 
-                    b.Property<Guid>("BikeId")
-                        .HasColumnType("uuid");
+					b.Property<Guid>("BikeId")
+						.HasColumnType("uuid");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+					b.Property<string>("Name")
+						.IsRequired()
+						.HasMaxLength(100)
+						.HasColumnType("character varying(100)");
 
-                    b.Property<string>("Position")
-                        .IsRequired()
-                        .HasColumnType("text");
+					b.Property<string>("Position")
+						.IsRequired()
+						.HasColumnType("text");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("BikeId");
+					b.HasIndex("BikeId");
 
-                    b.ToTable("BikeParts");
-                });
+					b.ToTable("BikeParts");
+				});
 
-            modelBuilder.Entity("Journey", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+			modelBuilder.Entity("Journey", b =>
+				{
+					b.Property<Guid>("Id")
+						.ValueGeneratedOnAdd()
+						.HasColumnType("uuid");
 
-                    b.Property<Guid>("BikeId")
-                        .HasColumnType("uuid");
+					b.Property<Guid>("BikeId")
+						.HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
+					b.Property<DateTime>("CreatedAtUtc")
+						.HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("Kilometer")
-                        .HasColumnType("integer");
+					b.Property<int>("Kilometer")
+						.HasColumnType("integer");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+					b.Property<string>("Title")
+						.IsRequired()
+						.HasMaxLength(100)
+						.HasColumnType("character varying(100)");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("BikeId");
+					b.HasIndex("BikeId");
 
-                    b.ToTable("Journeys");
-                });
+					b.ToTable("Journeys");
+				});
 
-            modelBuilder.Entity("MaintenanceTask", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+			modelBuilder.Entity("MaintenanceTask", b =>
+				{
+					b.Property<Guid>("Id")
+						.ValueGeneratedOnAdd()
+						.HasColumnType("uuid");
 
-                    b.Property<Guid>("BikePartId")
-                        .HasColumnType("uuid");
+					b.Property<Guid>("BikePartId")
+						.HasColumnType("uuid");
 
-                    b.Property<int>("Cost")
-                        .HasColumnType("integer");
+					b.Property<int>("Cost")
+						.HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
+					b.Property<DateTime>("CreatedAtUtc")
+						.HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+					b.Property<string>("Description")
+						.IsRequired()
+						.HasMaxLength(1000)
+						.HasColumnType("character varying(1000)");
 
-                    b.Property<string>("Importance")
-                        .IsRequired()
-                        .HasColumnType("text");
+					b.Property<string>("Importance")
+						.IsRequired()
+						.HasColumnType("text");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+					b.Property<bool>("IsActive")
+						.HasColumnType("boolean");
 
-                    b.Property<TimeSpan>("TimeInterval")
-                        .HasColumnType("interval");
+					b.Property<TimeSpan>("TimeInterval")
+						.HasColumnType("interval");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("BikePartId");
+					b.HasIndex("BikePartId");
 
-                    b.ToTable("MaintenanceTasks");
-                });
+					b.ToTable("MaintenanceTasks");
+				});
 
-            modelBuilder.Entity("ServiceEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+			modelBuilder.Entity("ServiceEvent", b =>
+				{
+					b.Property<Guid>("Id")
+						.ValueGeneratedOnAdd()
+						.HasColumnType("uuid");
 
-                    b.Property<Guid>("BikePartId")
-                        .HasColumnType("uuid");
+					b.Property<Guid>("BikePartId")
+						.HasColumnType("uuid");
 
-                    b.Property<int>("Cost")
-                        .HasColumnType("integer");
+					b.Property<int>("Cost")
+						.HasColumnType("integer");
 
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
+					b.Property<DateTime>("CreatedAtUtc")
+						.HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+					b.Property<string>("Description")
+						.IsRequired()
+						.HasMaxLength(1000)
+						.HasColumnType("character varying(1000)");
 
-                    b.Property<int>("StateAfterService")
-                        .HasColumnType("integer");
+					b.Property<int>("StateAfterService")
+						.HasColumnType("integer");
 
-                    b.HasKey("Id");
+					b.HasKey("Id");
 
-                    b.HasIndex("BikePartId");
+					b.HasIndex("BikePartId");
 
-                    b.ToTable("ServiceEvents");
-                });
+					b.ToTable("ServiceEvents");
+				});
 
-            modelBuilder.Entity("BikePart", b =>
-                {
-                    b.HasOne("Bike", "Bike")
-                        .WithMany("Parts")
-                        .HasForeignKey("BikeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+			modelBuilder.Entity("BikePart", b =>
+				{
+					b.HasOne("Bike", "Bike")
+						.WithMany("Parts")
+						.HasForeignKey("BikeId")
+						.OnDelete(DeleteBehavior.Cascade)
+						.IsRequired();
 
-                    b.Navigation("Bike");
-                });
+					b.Navigation("Bike");
+				});
 
-            modelBuilder.Entity("Journey", b =>
-                {
-                    b.HasOne("Bike", "Bike")
-                        .WithMany()
-                        .HasForeignKey("BikeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+			modelBuilder.Entity("Journey", b =>
+				{
+					b.HasOne("Bike", "Bike")
+						.WithMany()
+						.HasForeignKey("BikeId")
+						.OnDelete(DeleteBehavior.Cascade)
+						.IsRequired();
 
-                    b.Navigation("Bike");
-                });
+					b.Navigation("Bike");
+				});
 
-            modelBuilder.Entity("MaintenanceTask", b =>
-                {
-                    b.HasOne("BikePart", "BikePart")
-                        .WithMany()
-                        .HasForeignKey("BikePartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+			modelBuilder.Entity("MaintenanceTask", b =>
+				{
+					b.HasOne("BikePart", "BikePart")
+						.WithMany()
+						.HasForeignKey("BikePartId")
+						.OnDelete(DeleteBehavior.Cascade)
+						.IsRequired();
 
-                    b.Navigation("BikePart");
-                });
+					b.Navigation("BikePart");
+				});
 
-            modelBuilder.Entity("ServiceEvent", b =>
-                {
-                    b.HasOne("BikePart", "BikePart")
-                        .WithMany()
-                        .HasForeignKey("BikePartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+			modelBuilder.Entity("ServiceEvent", b =>
+				{
+					b.HasOne("BikePart", "BikePart")
+						.WithMany()
+						.HasForeignKey("BikePartId")
+						.OnDelete(DeleteBehavior.Cascade)
+						.IsRequired();
 
-                    b.Navigation("BikePart");
-                });
+					b.Navigation("BikePart");
+				});
 
-            modelBuilder.Entity("Bike", b =>
-                {
-                    b.Navigation("Parts");
-                });
+			modelBuilder.Entity("Bike", b =>
+				{
+					b.Navigation("Parts");
+				});
 #pragma warning restore 612, 618
-        }
-    }
+		}
+	}
 }

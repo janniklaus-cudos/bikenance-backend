@@ -1,13 +1,21 @@
 using Backend.Data;
-using bikenance.Data;
+using Backend.Services;
+using Backend.Mapping;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(o =>
 	o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IBikeService, BikeService>();
+
+builder.Services.AddAutoMapper(
+	typeof(BikeProfile),
+	typeof(BikePartProfile)
+	);
 
 var app = builder.Build();
 
@@ -20,6 +28,7 @@ if (app.Environment.IsDevelopment())
 		options.SwaggerEndpoint("/openapi/v1.json", "v1");
 	});
 
+	// Seed the database
 	using var scope = app.Services.CreateScope();
 	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 	await db.Database.MigrateAsync();
@@ -28,23 +37,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-
-app.MapGet("/weatherforecast", () =>
-{
-	var forecast = Enumerable.Range(1, 5).Select(index =>
-		new WeatherForecast
-		(
-			DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-			Random.Shared.Next(-20, 55)
-		))
-		.ToArray();
-	return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC)
-{
-	public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

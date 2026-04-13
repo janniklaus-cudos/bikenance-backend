@@ -1,3 +1,5 @@
+namespace Backend.Models;
+
 public enum ImportanceLevel
 {
 	LOW,
