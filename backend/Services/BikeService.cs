@@ -16,7 +16,7 @@ public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
         .ToListAsync();
     }
 
-    public async Task<Bike> AddAsync(Bike bike)
+    public async Task<BikeDto> AddAsync(Bike bike)
     {
         if (bike.Id == Guid.Empty)
         {
@@ -31,10 +31,10 @@ public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
         db.Bikes.Add(bike);
         await db.SaveChangesAsync();
 
-        return bike;
+        return mapper.Map<BikeDto>(bike);
     }
 
-    public async Task<Bike?> UpdateAsync(Guid id, Bike bike)
+    public async Task<BikeDto?> UpdateAsync(Guid id, Bike bike)
     {
         var existingBike = await db.Bikes
             .Include(b => b.Parts)
@@ -57,7 +57,7 @@ public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
 
         await db.SaveChangesAsync();
 
-        return existingBike;
+        return mapper.Map<BikeDto>(existingBike);
     }
 
     public async Task<bool> DeleteAsync(Guid id)

@@ -33,7 +33,7 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             .ToListAsync();
     }
 
-    public async Task<BikePart?> AddAsync(Guid bikeId, BikePart bikePart)
+    public async Task<BikePartDto?> AddAsync(Guid bikeId, BikePart bikePart)
     {
         var bike = await db.Bikes.FindAsync(bikeId);
         if (bike == null)
@@ -50,10 +50,10 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
         db.BikeParts.Add(bikePart);
         await db.SaveChangesAsync();
 
-        return bikePart;
+        return mapper.Map<BikePartDto>(bikePart);
     }
 
-    public async Task<List<BikePart>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePart> bikeParts)
+    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePart> bikeParts)
     {
         var bike = await db.Bikes.FindAsync(bikeId);
         if (bike == null)
@@ -74,10 +74,10 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
         db.BikeParts.AddRange(bikeParts);
         await db.SaveChangesAsync();
 
-        return bikeParts;
+        return mapper.Map<List<BikePartDto>>(bikeParts);
     }
 
-    public async Task<BikePart?> UpdateAsync(Guid id, BikePart bikePart)
+    public async Task<BikePartDto?> UpdateAsync(Guid id, BikePart bikePart)
     {
         var existingPart = await db.BikeParts
             .Include(bp => bp.Bike)
@@ -93,7 +93,7 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
 
         await db.SaveChangesAsync();
 
-        return existingPart;
+        return mapper.Map<BikePartDto>(existingPart);
     }
 
     public async Task<bool> DeleteAsync(Guid id)

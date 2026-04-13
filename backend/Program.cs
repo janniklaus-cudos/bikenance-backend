@@ -29,7 +29,8 @@ builder.Services.Scan(scan => scan
 // Auto Mapper configuration
 builder.Services.AddAutoMapper(
     typeof(BikeProfile),
-    typeof(BikePartProfile)
+    typeof(BikePartProfile),
+    typeof(MaintenanceTaskProfile)
     );
 
 var app = builder.Build();
