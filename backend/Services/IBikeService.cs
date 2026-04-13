@@ -7,7 +7,7 @@ namespace Backend.Services;
 public interface IBikeService
 {
     Task<List<BikeDto>> GetAllAsync();
-    Task<BikeDto> AddAsync(Bike bike);
-    Task<BikeDto?> UpdateAsync(Guid id, Bike bike);
+    Task<BikeDto> AddAsync(BikeDto bike);
+    Task<BikeDto?> UpdateAsync(Guid id, BikeDto bike);
     Task<bool> DeleteAsync(Guid id);
 }

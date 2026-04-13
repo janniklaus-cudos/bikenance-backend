@@ -7,7 +7,7 @@ using AutoMapper;
 
 namespace Backend.Services;
 
-public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
+public class BikeService(AppDbContext db, IMapper mapper, IBikePartService bikePartService) : IBikeService
 {
     public async Task<List<BikeDto>> GetAllAsync()
     {
@@ -16,25 +16,24 @@ public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
         .ToListAsync();
     }
 
-    public async Task<BikeDto> AddAsync(Bike bike)
+    public async Task<BikeDto> AddAsync(BikeDto bike)
     {
-        if (bike.Id == Guid.Empty)
+        var createdBike = new Bike
         {
-            bike.Id = Guid.NewGuid();
-        }
+            Name = bike.Name,
+            Brand = bike.Brand,
+            IconId = bike.IconId
+        };
 
-        foreach (var part in bike.Parts)
-        {
-            part.Bike = bike;
-        }
+        await bikePartService.AddAllByBikeIdAsync(createdBike.Id, bike.Parts);
 
-        db.Bikes.Add(bike);
+        db.Bikes.Add(createdBike);
         await db.SaveChangesAsync();
 
-        return mapper.Map<BikeDto>(bike);
+        return mapper.Map<BikeDto>(createdBike);
     }
 
-    public async Task<BikeDto?> UpdateAsync(Guid id, Bike bike)
+    public async Task<BikeDto?> UpdateAsync(Guid id, BikeDto bike)
     {
         var existingBike = await db.Bikes
             .Include(b => b.Parts)
@@ -49,12 +48,9 @@ public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
         existingBike.Brand = bike.Brand;
         existingBike.IconId = bike.IconId;
 
-        existingBike.Parts = bike.Parts ?? new List<BikePart>();
-        foreach (var part in existingBike.Parts)
-        {
-            part.Bike = existingBike;
-        }
+        await bikePartService.UpdateAllAsync(id, bike.Parts);
 
+        db.Bikes.Update(existingBike);
         await db.SaveChangesAsync();
 
         return mapper.Map<BikeDto>(existingBike);

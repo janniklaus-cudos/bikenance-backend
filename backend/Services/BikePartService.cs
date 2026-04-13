@@ -33,7 +33,7 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             .ToListAsync();
     }
 
-    public async Task<BikePartDto?> AddAsync(Guid bikeId, BikePart bikePart)
+    public async Task<BikePartDto?> AddAsync(Guid bikeId, BikePartDto bikePart)
     {
         var bike = await db.Bikes.FindAsync(bikeId);
         if (bike == null)
@@ -41,19 +41,20 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             return null;
         }
 
-        if (bikePart.Id == Guid.Empty)
+        var createdBikePart = new BikePart
         {
-            bikePart.Id = Guid.NewGuid();
-        }
+            Name = bikePart.Name,
+            Position = bikePart.Position,
+            Bike = bike
+        };
 
-        bikePart.Bike = bike;
-        db.BikeParts.Add(bikePart);
+        db.BikeParts.Add(createdBikePart);
         await db.SaveChangesAsync();
 
-        return mapper.Map<BikePartDto>(bikePart);
+        return mapper.Map<BikePartDto>(createdBikePart);
     }
 
-    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePart> bikeParts)
+    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartDto> bikeParts)
     {
         var bike = await db.Bikes.FindAsync(bikeId);
         if (bike == null)
@@ -61,39 +62,39 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             return null;
         }
 
-        foreach (var part in bikeParts)
+        var createdBikeParts = bikeParts.Select(bp => new BikePart
         {
-            if (part.Id == Guid.Empty)
+            Name = bp.Name,
+            Position = bp.Position,
+            Bike = bike
+        }).ToList();
+
+        db.BikeParts.AddRange(createdBikeParts);
+        await db.SaveChangesAsync();
+
+        return mapper.Map<List<BikePartDto>>(createdBikeParts);
+    }
+
+    public async Task<List<BikePartDto>?> UpdateAllAsync(Guid id, List<BikePartDto> bikeParts)
+    {
+        var existingBikeParts = await db.BikeParts
+            .Where(bp => bp.Bike.Id == id)
+            .ToListAsync();
+
+        foreach (var existingBikePart in existingBikeParts)
+        {
+            var updatedPart = bikeParts.FirstOrDefault(bp => bp.Id == existingBikePart.Id);
+            if (updatedPart != null)
             {
-                part.Id = Guid.NewGuid();
+                existingBikePart.Name = updatedPart.Name;
+                existingBikePart.Position = updatedPart.Position;
             }
-
-            part.Bike = bike;
         }
 
-        db.BikeParts.AddRange(bikeParts);
+        db.BikeParts.UpdateRange(existingBikeParts);
         await db.SaveChangesAsync();
 
-        return mapper.Map<List<BikePartDto>>(bikeParts);
-    }
-
-    public async Task<BikePartDto?> UpdateAsync(Guid id, BikePart bikePart)
-    {
-        var existingPart = await db.BikeParts
-            .Include(bp => bp.Bike)
-            .FirstOrDefaultAsync(bp => bp.Id == id);
-
-        if (existingPart == null)
-        {
-            return null;
-        }
-
-        existingPart.Name = bikePart.Name;
-        existingPart.Position = bikePart.Position;
-
-        await db.SaveChangesAsync();
-
-        return mapper.Map<BikePartDto>(existingPart);
+        return mapper.Map<List<BikePartDto>>(existingBikeParts);
     }
 
     public async Task<bool> DeleteAsync(Guid id)

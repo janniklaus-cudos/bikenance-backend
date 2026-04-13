@@ -1,3 +1,4 @@
+using Backend.Dtos;
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddBikeParts([FromQuery] Guid bikeId, [FromBody] List<BikePart> bikeParts)
+    public async Task<IActionResult> AddBikeParts([FromQuery] Guid bikeId, [FromBody] List<BikePartDto> bikeParts)
     {
         var createdParts = await bikePartService.AddAllByBikeIdAsync(bikeId, bikeParts);
         if (createdParts is null)
@@ -46,9 +47,9 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBikePart(Guid id, [FromBody] BikePart bikePart)
+    public async Task<IActionResult> UpdateBikePart(Guid id, [FromBody] List<BikePartDto> bikeParts)
     {
-        var updatedPart = await bikePartService.UpdateAsync(id, bikePart);
+        var updatedPart = await bikePartService.UpdateAllAsync(id, bikeParts);
         if (updatedPart is null)
         {
             return NotFound();

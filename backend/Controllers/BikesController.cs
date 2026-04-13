@@ -1,6 +1,7 @@
 using Backend.Services;
 using Backend.Models;
 using Microsoft.AspNetCore.Mvc;
+using Backend.Dtos;
 
 namespace Backend.Controllers;
 
@@ -17,14 +18,14 @@ public class BikesController(IBikeService bikeService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddBike([FromBody] Bike bike)
+    public async Task<IActionResult> AddBike([FromBody] BikeDto bike)
     {
         var createdBike = await bikeService.AddAsync(bike);
         return CreatedAtAction(nameof(GetAllBikes), new { }, createdBike);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBike(Guid id, [FromBody] Bike bike)
+    public async Task<IActionResult> UpdateBike(Guid id, [FromBody] BikeDto bike)
     {
         var updatedBike = await bikeService.UpdateAsync(id, bike);
         if (updatedBike is null)
