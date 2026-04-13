@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 public class Bike
 {
 	[Key]
-	public Guid Id { get; set; }
+	[Required]
+	public Guid Id { get; set; } = Guid.NewGuid();
 
 	[Required]
 	[MaxLength(100)]
@@ -17,7 +18,7 @@ public class Bike
 	public int IconId { get; set; } = 0;
 
 	[Required]
-	public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+	public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
 	[Required]
 	public List<BikePart> Parts { get; set; } = [];

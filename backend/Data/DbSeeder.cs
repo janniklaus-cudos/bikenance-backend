@@ -15,17 +15,16 @@ public static class DbSeeder
 
 		var roadBike = new Bike
 		{
-			Id = Guid.NewGuid(),
 			Name = "Morning Roadster",
 			Brand = "Velociti",
 			IconId = 1,
 			Parts = new List<BikePart>
 			{
-				new BikePart { Id = Guid.NewGuid(), Name = "Front Wheel Tire", Position = BikePartPosition.FrontWheelTire },
-				new BikePart { Id = Guid.NewGuid(), Name = "Rear Wheel Tire", Position = BikePartPosition.RearWheelTire },
-				new BikePart { Id = Guid.NewGuid(), Name = "Chain", Position = BikePartPosition.Chain },
-				new BikePart { Id = Guid.NewGuid(), Name = "Front Brakes", Position = BikePartPosition.FrontBrakes },
-				new BikePart { Id = Guid.NewGuid(), Name = "Rear Brakes", Position = BikePartPosition.RearBrakes },
+				new BikePart {  Name = "Front Wheel Tire", Position = BikePartPosition.FrontWheelTire },
+				new BikePart {  Name = "Rear Wheel Tire", Position = BikePartPosition.RearWheelTire },
+				new BikePart {  Name = "Chain", Position = BikePartPosition.Chain },
+				new BikePart {  Name = "Front Brakes", Position = BikePartPosition.FrontBrakes },
+				new BikePart {  Name = "Rear Brakes", Position = BikePartPosition.RearBrakes },
 			}
 		};
 
@@ -36,17 +35,16 @@ public static class DbSeeder
 
 		var cityBike = new Bike
 		{
-			Id = Guid.NewGuid(),
 			Name = "City Commuter",
 			Brand = "UrbanRide",
 			IconId = 2,
 			Parts = new List<BikePart>
 			{
-				new BikePart { Id = Guid.NewGuid(), Name = "Front Wheel Tire", Position = BikePartPosition.FrontWheelTire },
-				new BikePart { Id = Guid.NewGuid(), Name = "Rear Wheel Tire", Position = BikePartPosition.RearWheelTire },
-				new BikePart { Id = Guid.NewGuid(), Name = "Saddle", Position = BikePartPosition.Saddle },
-				new BikePart { Id = Guid.NewGuid(), Name = "Pedal", Position = BikePartPosition.Pedal },
-				new BikePart { Id = Guid.NewGuid(), Name = "Rear Chain Wheel", Position = BikePartPosition.RearChainWheel },
+				new BikePart {  Name = "Front Wheel Tire", Position = BikePartPosition.FrontWheelTire },
+				new BikePart {  Name = "Rear Wheel Tire", Position = BikePartPosition.RearWheelTire },
+				new BikePart {  Name = "Saddle", Position = BikePartPosition.Saddle },
+				new BikePart {  Name = "Pedal", Position = BikePartPosition.Pedal },
+				new BikePart {  Name = "Rear Chain Wheel", Position = BikePartPosition.RearChainWheel },
 			}
 		};
 
@@ -59,21 +57,18 @@ public static class DbSeeder
 		{
 			new Journey
 			{
-				Id = Guid.NewGuid(),
 				Bike = roadBike,
 				Title = "Saturday Long Ride",
 				Kilometer = 42,
 			},
 			new Journey
 			{
-				Id = Guid.NewGuid(),
 				Bike = roadBike,
 				Title = "Sunday Morning Sprint",
 				Kilometer = 18,
 			},
 			new Journey
 			{
-				Id = Guid.NewGuid(),
 				Bike = cityBike,
 				Title = "Daily Commute",
 				Kilometer = 12,
@@ -84,7 +79,6 @@ public static class DbSeeder
 		{
 			new MaintenanceTask
 			{
-				Id = Guid.NewGuid(),
 				BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.Chain),
 				Description = "Lubricate chain and inspect for wear.",
 				TimeInterval = TimeSpan.FromDays(14),
@@ -94,7 +88,6 @@ public static class DbSeeder
 			},
 			new MaintenanceTask
 			{
-				Id = Guid.NewGuid(),
 				BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.FrontBrakes),
 				Description = "Check brake pads and replace if worn.",
 				TimeInterval = TimeSpan.FromDays(30),
@@ -104,7 +97,6 @@ public static class DbSeeder
 			},
 			new MaintenanceTask
 			{
-				Id = Guid.NewGuid(),
 				BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.RearChainWheel),
 				Description = "Inspect rear chain wheel and tighten bolts.",
 				TimeInterval = TimeSpan.FromDays(45),
@@ -118,7 +110,6 @@ public static class DbSeeder
 		{
 			new ServiceEvent
 			{
-				Id = Guid.NewGuid(),
 				BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.RearWheelTire),
 				Description = "Replaced rear tire after puncture.",
 				StateAfterService = 100,
@@ -126,7 +117,6 @@ public static class DbSeeder
 			},
 			new ServiceEvent
 			{
-				Id = Guid.NewGuid(),
 				BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.Saddle),
 				Description = "Adjusted saddle height and tightened clamps.",
 				StateAfterService = 95,

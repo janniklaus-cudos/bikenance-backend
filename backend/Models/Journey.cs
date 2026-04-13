@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 public class Journey
 {
 	[Key]
-	public Guid Id { get; set; }
+	[Required]
+	public Guid Id { get; set; } = Guid.NewGuid();
 
 	[Required]
 	public required Bike Bike { get; set; }
@@ -17,5 +18,5 @@ public class Journey
 	public int Kilometer { get; set; } = 0;
 
 	[Required]
-	public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+	public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

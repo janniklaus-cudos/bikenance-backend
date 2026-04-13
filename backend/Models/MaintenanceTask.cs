@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 public class MaintenanceTask
 {
 	[Key]
-	public Guid Id { get; set; }
+	[Required]
+	public Guid Id { get; set; } = Guid.NewGuid();
 
 	[Required]
 	public required BikePart BikePart { get; set; }
@@ -26,5 +27,5 @@ public class MaintenanceTask
 	public bool IsActive { get; set; } = true;
 
 	[Required]
-	public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
+	public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }

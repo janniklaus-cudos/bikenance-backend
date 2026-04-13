@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 public class BikePart
 {
 	[Key]
-	public Guid Id { get; set; }
+	[Required]
+	public Guid Id { get; set; } = Guid.NewGuid();
 
 	[Required]
 	[MaxLength(100)]

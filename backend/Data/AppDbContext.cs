@@ -5,6 +5,7 @@ namespace Backend.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
 	public DbSet<Bike> Bikes => Set<Bike>();
+	public DbSet<BikePart> BikeParts => Set<BikePart>();
 	public DbSet<Journey> Journeys => Set<Journey>();
 	public DbSet<MaintenanceTask> MaintenanceTasks => Set<MaintenanceTask>();
 	public DbSet<ServiceEvent> ServiceEvents => Set<ServiceEvent>();
