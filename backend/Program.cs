@@ -5,34 +5,43 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ASP.NET Core services
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+// EF Core configuration
 builder.Services.AddDbContext<AppDbContext>(o =>
-	o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<IBikeService, BikeService>();
+    o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// own services configuration
+builder.Services.Scan(scan => scan
+    .FromAssemblyOf<BikeService>()
+    .AddClasses(classes => classes.Where(t => t.Name.EndsWith("Service")))
+    .AsImplementedInterfaces()
+    .WithScopedLifetime()
+);
+
+// Auto Mapper configuration
 builder.Services.AddAutoMapper(
-	typeof(BikeProfile),
-	typeof(BikePartProfile)
-	);
+    typeof(BikeProfile),
+    typeof(BikePartProfile)
+    );
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// only in development: swagger and db seeding
 if (app.Environment.IsDevelopment())
 {
-	app.MapOpenApi();
-	app.UseSwaggerUI(options =>
-	{
-		options.SwaggerEndpoint("/openapi/v1.json", "v1");
-	});
+    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "v1");
+    });
 
-	// Seed the database
-	using var scope = app.Services.CreateScope();
-	var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-	await db.Database.MigrateAsync();
-	await DbSeeder.SeedAsync(db);
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+    await DbSeeder.SeedAsync(db);
 }
 
 app.UseHttpsRedirection();

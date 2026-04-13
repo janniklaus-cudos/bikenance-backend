@@ -7,79 +7,70 @@ using AutoMapper;
 
 namespace Backend.Services;
 
-public class BikeService : IBikeService
+public class BikeService(AppDbContext db, IMapper mapper) : IBikeService
 {
-	private readonly AppDbContext _db;
-	private readonly IMapper _mapper;
+    public async Task<List<BikeDto>> GetAllAsync()
+    {
+        return await db.Bikes
+        .ProjectTo<BikeDto>(mapper.ConfigurationProvider)
+        .ToListAsync();
+    }
 
-	public BikeService(AppDbContext db, IMapper mapper)
-	{
-		_db = db;
-		_mapper = mapper;
-	}
+    public async Task<Bike> AddAsync(Bike bike)
+    {
+        if (bike.Id == Guid.Empty)
+        {
+            bike.Id = Guid.NewGuid();
+        }
 
-	public async Task<List<BikeDto>> GetAllAsync()
-	{
-		return await _db.Bikes
-		.ProjectTo<BikeDto>(_mapper.ConfigurationProvider)
-		.ToListAsync();
-	}
+        foreach (var part in bike.Parts)
+        {
+            part.Bike = bike;
+        }
 
-	public async Task<Bike> AddAsync(Bike bike)
-	{
-		if (bike.Id == Guid.Empty)
-		{
-			bike.Id = Guid.NewGuid();
-		}
+        db.Bikes.Add(bike);
+        await db.SaveChangesAsync();
 
-		foreach (var part in bike.Parts)
-		{
-			part.Bike = bike;
-		}
+        return bike;
+    }
 
-		_db.Bikes.Add(bike);
-		await _db.SaveChangesAsync();
+    public async Task<Bike?> UpdateAsync(Guid id, Bike bike)
+    {
+        var existingBike = await db.Bikes
+            .Include(b => b.Parts)
+            .FirstOrDefaultAsync(b => b.Id == id);
 
-		return bike;
-	}
+        if (existingBike == null)
+        {
+            return null;
+        }
 
-	public async Task<Bike?> UpdateAsync(Guid id, Bike bike)
-	{
-		var existingBike = await _db.Bikes
-			.Include(b => b.Parts)
-			.FirstOrDefaultAsync(b => b.Id == id);
+        existingBike.Name = bike.Name;
+        existingBike.Brand = bike.Brand;
+        existingBike.IconId = bike.IconId;
 
-		if (existingBike == null)
-		{
-			return null;
-		}
+        existingBike.Parts = bike.Parts ?? new List<BikePart>();
+        foreach (var part in existingBike.Parts)
+        {
+            part.Bike = existingBike;
+        }
 
-		existingBike.Name = bike.Name;
-		existingBike.Brand = bike.Brand;
-		existingBike.IconId = bike.IconId;
+        await db.SaveChangesAsync();
 
-		existingBike.Parts = bike.Parts ?? new List<BikePart>();
-		foreach (var part in existingBike.Parts)
-		{
-			part.Bike = existingBike;
-		}
+        return existingBike;
+    }
 
-		await _db.SaveChangesAsync();
+    public async Task<bool> DeleteAsync(Guid id)
+    {
+        var bike = await db.Bikes.FindAsync(id);
+        if (bike == null)
+        {
+            return false;
+        }
 
-		return existingBike;
-	}
+        db.Bikes.Remove(bike);
+        await db.SaveChangesAsync();
 
-	public async Task<bool> DeleteAsync(Guid id)
-	{
-		var bike = await _db.Bikes.FindAsync(id);
-		if (bike == null)
-		{
-			return false;
-		}
-
-		_db.Bikes.Remove(bike);
-		await _db.SaveChangesAsync();
-
-		return true;
-	}
+        return true;
+    }
 }
