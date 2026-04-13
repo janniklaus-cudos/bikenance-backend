@@ -7,16 +7,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-public class MaintenanceTaskService(AppDbContext db, IMapper mapper) : IMaintenanceTaskService
+public class MaintenanceTaskService(IMapper mapper, IRepository<MaintenanceTask> maintenanceTaskRepository, IRepository<BikePart> bikePartRepository) : IMaintenanceTaskService
 {
     public async Task<List<MaintenanceTaskDto>?> GetAllByBikePartIdAsync(Guid bikePartId)
     {
-        if (!await db.BikeParts.AnyAsync(bp => bp.Id == bikePartId))
+        if (!await maintenanceTaskRepository.Query().AnyAsync(bp => bp.Id == bikePartId))
         {
             return null;
         }
 
-        return await db.MaintenanceTasks
+        return await maintenanceTaskRepository.Query()
             .Where(mt => mt.BikePart.Id == bikePartId)
             .ProjectTo<MaintenanceTaskDto>(mapper.ConfigurationProvider)
             .ToListAsync();
@@ -24,7 +24,7 @@ public class MaintenanceTaskService(AppDbContext db, IMapper mapper) : IMaintena
 
     public async Task<MaintenanceTaskDto?> AddAsync(Guid bikePartId, MaintenanceTaskDto maintenanceTask)
     {
-        var bikePart = await db.BikeParts.FindAsync(bikePartId);
+        var bikePart = await bikePartRepository.GetByIdAsync(bikePartId);
         if (bikePart == null)
         {
             return null;
@@ -40,17 +40,15 @@ public class MaintenanceTaskService(AppDbContext db, IMapper mapper) : IMaintena
             IsActive = maintenanceTask.IsActive
         };
 
-        db.MaintenanceTasks.Add(createdMaintenanceTask);
-        await db.SaveChangesAsync();
+        maintenanceTaskRepository.Add(createdMaintenanceTask);
+        await maintenanceTaskRepository.SaveChangesAsync();
 
         return mapper.Map<MaintenanceTaskDto>(createdMaintenanceTask);
     }
 
     public async Task<MaintenanceTaskDto?> UpdateAsync(Guid id, MaintenanceTaskDto maintenanceTask)
     {
-        var existingTask = await db.MaintenanceTasks
-            .Include(mt => mt.BikePart)
-            .FirstOrDefaultAsync(mt => mt.Id == id);
+        var existingTask = await maintenanceTaskRepository.GetByIdAsync(id);
 
         if (existingTask == null)
         {
@@ -63,33 +61,34 @@ public class MaintenanceTaskService(AppDbContext db, IMapper mapper) : IMaintena
         existingTask.Importance = maintenanceTask.Importance;
         existingTask.IsActive = maintenanceTask.IsActive;
 
-        await db.SaveChangesAsync();
+        maintenanceTaskRepository.Update(existingTask);
+        await maintenanceTaskRepository.SaveChangesAsync();
 
         return mapper.Map<MaintenanceTaskDto>(existingTask);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var task = await db.MaintenanceTasks.FindAsync(id);
+        var task = await maintenanceTaskRepository.GetByIdAsync(id);
         if (task == null)
         {
             return false;
         }
 
-        db.MaintenanceTasks.Remove(task);
-        await db.SaveChangesAsync();
+        maintenanceTaskRepository.Remove(task);
+        await maintenanceTaskRepository.SaveChangesAsync();
 
         return true;
     }
 
     public async Task<bool> DeleteAllByBikePartIdAsync(Guid bikePartId)
     {
-        if (!await db.BikeParts.AnyAsync(bp => bp.Id == bikePartId))
+        if (!await bikePartRepository.Query().AnyAsync(bp => bp.Id == bikePartId))
         {
             return false;
         }
 
-        var tasks = await db.MaintenanceTasks
+        var tasks = await maintenanceTaskRepository.Query()
             .Where(mt => mt.BikePart.Id == bikePartId)
             .ToListAsync();
 
@@ -98,8 +97,8 @@ public class MaintenanceTaskService(AppDbContext db, IMapper mapper) : IMaintena
             return true;
         }
 
-        db.MaintenanceTasks.RemoveRange(tasks);
-        await db.SaveChangesAsync();
+        maintenanceTaskRepository.RemoveRange(tasks);
+        await maintenanceTaskRepository.SaveChangesAsync();
 
         return true;
     }

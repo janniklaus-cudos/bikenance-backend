@@ -7,12 +7,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
+public class BikePartService(IMapper mapper, IRepository<BikePart> bikePartRepository, IRepository<Bike> bikeRepository) : IBikePartService
 {
 
     public async Task<BikePartDto?> GetByIdAsync(Guid id)
     {
-        var bikePart = await db.BikeParts
+        var bikePart = await bikePartRepository.Query()
             .Where(bp => bp.Id == id)
             .ProjectTo<BikePartDto>(mapper.ConfigurationProvider)
             .FirstOrDefaultAsync();
@@ -22,12 +22,12 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
 
     public async Task<List<BikePartDto>?> GetAllByBikeIdAsync(Guid bikeId)
     {
-        if (!await db.Bikes.AnyAsync(b => b.Id == bikeId))
+        if (!await bikePartRepository.Query().AnyAsync(b => b.Id == bikeId))
         {
             return null;
         }
 
-        return await db.BikeParts
+        return await bikePartRepository.Query()
             .Where(bp => bp.Bike.Id == bikeId)
             .ProjectTo<BikePartDto>(mapper.ConfigurationProvider)
             .ToListAsync();
@@ -35,7 +35,7 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
 
     public async Task<BikePartDto?> AddAsync(Guid bikeId, BikePartDto bikePart)
     {
-        var bike = await db.Bikes.FindAsync(bikeId);
+        var bike = await bikeRepository.GetByIdAsync(bikeId);
         if (bike == null)
         {
             return null;
@@ -48,15 +48,15 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             Bike = bike
         };
 
-        db.BikeParts.Add(createdBikePart);
-        await db.SaveChangesAsync();
+        bikePartRepository.Add(createdBikePart);
+        await bikePartRepository.SaveChangesAsync();
 
         return mapper.Map<BikePartDto>(createdBikePart);
     }
 
     public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartDto> bikeParts)
     {
-        var bike = await db.Bikes.FindAsync(bikeId);
+        var bike = await bikeRepository.GetByIdAsync(bikeId);
         if (bike == null)
         {
             return null;
@@ -69,15 +69,15 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             Bike = bike
         }).ToList();
 
-        db.BikeParts.AddRange(createdBikeParts);
-        await db.SaveChangesAsync();
+        bikePartRepository.AddRange(createdBikeParts);
+        await bikePartRepository.SaveChangesAsync();
 
         return mapper.Map<List<BikePartDto>>(createdBikeParts);
     }
 
     public async Task<List<BikePartDto>?> UpdateAllAsync(Guid id, List<BikePartDto> bikeParts)
     {
-        var existingBikeParts = await db.BikeParts
+        var existingBikeParts = await bikePartRepository.Query()
             .Where(bp => bp.Bike.Id == id)
             .ToListAsync();
 
@@ -91,34 +91,34 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             }
         }
 
-        db.BikeParts.UpdateRange(existingBikeParts);
-        await db.SaveChangesAsync();
+        bikePartRepository.UpdateRange(existingBikeParts);
+        await bikePartRepository.SaveChangesAsync();
 
         return mapper.Map<List<BikePartDto>>(existingBikeParts);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var part = await db.BikeParts.FindAsync(id);
+        var part = await bikePartRepository.GetByIdAsync(id);
         if (part == null)
         {
             return false;
         }
 
-        db.BikeParts.Remove(part);
-        await db.SaveChangesAsync();
+        bikePartRepository.Remove(part);
+        await bikePartRepository.SaveChangesAsync();
 
         return true;
     }
 
     public async Task<bool> DeleteAllByBikeIdAsync(Guid bikeId)
     {
-        if (!await db.Bikes.AnyAsync(b => b.Id == bikeId))
+        if (!await bikeRepository.Query().AnyAsync(b => b.Id == bikeId))
         {
             return false;
         }
 
-        var parts = await db.BikeParts
+        var parts = await bikePartRepository.Query()
             .Where(bp => bp.Bike.Id == bikeId)
             .ToListAsync();
 
@@ -127,8 +127,8 @@ public class BikePartService(AppDbContext db, IMapper mapper) : IBikePartService
             return true;
         }
 
-        db.BikeParts.RemoveRange(parts);
-        await db.SaveChangesAsync();
+        bikePartRepository.RemoveRange(parts);
+        await bikePartRepository.SaveChangesAsync();
 
         return true;
     }

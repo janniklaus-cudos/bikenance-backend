@@ -7,13 +7,13 @@ using AutoMapper;
 
 namespace Backend.Services;
 
-public class BikeService(AppDbContext db, IMapper mapper, IBikePartService bikePartService) : IBikeService
+public class BikeService(IMapper mapper, IRepository<Bike> bikeRepository, IBikePartService bikePartService) : IBikeService
 {
     public async Task<List<BikeDto>> GetAllAsync()
     {
-        return await db.Bikes
-        .ProjectTo<BikeDto>(mapper.ConfigurationProvider)
-        .ToListAsync();
+        return await bikeRepository.Query()
+            .ProjectTo<BikeDto>(mapper.ConfigurationProvider)
+            .ToListAsync();
     }
 
     public async Task<BikeDto> AddAsync(BikeDto bike)
@@ -27,17 +27,15 @@ public class BikeService(AppDbContext db, IMapper mapper, IBikePartService bikeP
 
         await bikePartService.AddAllByBikeIdAsync(createdBike.Id, bike.Parts);
 
-        db.Bikes.Add(createdBike);
-        await db.SaveChangesAsync();
+        bikeRepository.Add(createdBike);
+        await bikeRepository.SaveChangesAsync();
 
         return mapper.Map<BikeDto>(createdBike);
     }
 
     public async Task<BikeDto?> UpdateAsync(Guid id, BikeDto bike)
     {
-        var existingBike = await db.Bikes
-            .Include(b => b.Parts)
-            .FirstOrDefaultAsync(b => b.Id == id);
+        var existingBike = await bikeRepository.GetByIdAsync(id);
 
         if (existingBike == null)
         {
@@ -50,22 +48,22 @@ public class BikeService(AppDbContext db, IMapper mapper, IBikePartService bikeP
 
         await bikePartService.UpdateAllAsync(id, bike.Parts);
 
-        db.Bikes.Update(existingBike);
-        await db.SaveChangesAsync();
+        bikeRepository.Update(existingBike);
+        await bikeRepository.SaveChangesAsync();
 
         return mapper.Map<BikeDto>(existingBike);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var bike = await db.Bikes.FindAsync(id);
+        var bike = await bikeRepository.GetByIdAsync(id);
         if (bike == null)
         {
             return false;
         }
 
-        db.Bikes.Remove(bike);
-        await db.SaveChangesAsync();
+        bikeRepository.Remove(bike);
+        await bikeRepository.SaveChangesAsync();
 
         return true;
     }

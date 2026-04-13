@@ -25,6 +25,7 @@ builder.Services.Scan(scan => scan
     .AsImplementedInterfaces()
     .WithScopedLifetime()
 );
+builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 
 // Auto Mapper configuration
 builder.Services.AddAutoMapper(
