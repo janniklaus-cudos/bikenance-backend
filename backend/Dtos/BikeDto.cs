@@ -1,10 +1,11 @@
 namespace Backend.Dtos;
 
-public record BikeDto(
-	Guid Id,
-	string Name,
-	string Brand,
-	int IconId,
-	DateTime CreatedAtUtc,
-	List<BikePartDto> Parts
-);
+public record BikeDto
+{
+    public Guid Id { get; init; }
+    public string Name { get; init; } = "";
+    public string Brand { get; init; } = "";
+    public int IconId { get; init; }
+    public DateTime CreatedAtUtc { get; init; }
+    public List<BikePartDto> Parts { get; init; } = new();
+}
