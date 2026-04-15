@@ -122,6 +122,34 @@ public static class DbSeeder
 				Description = "Adjusted saddle height and tightened clamps.",
 				StateAfterService = 95,
 				Cost = 0,
+			},
+			new ServiceEvent
+			{
+				BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.Chain),
+				Description = "Cleaned and lubricated chain, replaced damaged links.",
+				StateAfterService = 90,
+				Cost = 15,
+			},
+			new ServiceEvent
+			{
+				BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.FrontBrakes),
+				Description = "Replaced worn brake pads and adjusted brake cable tension.",
+				StateAfterService = 100,
+				Cost = 35,
+			},
+			new ServiceEvent
+			{
+				BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.FrontWheelTire),
+				Description = "Patched puncture in front tire.",
+				StateAfterService = 85,
+				Cost = 8,
+			},
+			new ServiceEvent
+			{
+				BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.Pedal),
+				Description = "Repaired pedal bearing and replaced cracked plastic platform.",
+				StateAfterService = 80,
+				Cost = 20,
 			}
 		};
 

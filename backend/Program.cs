@@ -15,8 +15,9 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 
 // EF Core configuration
-builder.Services.AddDbContext<AppDbContext>(o =>
-    o.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<AppDbContext>(opt =>
+    opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+       .UseLazyLoadingProxies());
 
 // own services configuration
 builder.Services.Scan(scan => scan
@@ -31,7 +32,8 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 builder.Services.AddAutoMapper(
     typeof(BikeProfile),
     typeof(BikePartProfile),
-    typeof(MaintenanceTaskProfile)
+    typeof(MaintenanceTaskProfile),
+    typeof(ServiceEventProfile)
     );
 
 var app = builder.Build();

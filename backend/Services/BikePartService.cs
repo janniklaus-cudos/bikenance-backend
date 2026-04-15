@@ -12,12 +12,13 @@ public class BikePartService(IMapper mapper, IRepository<BikePart> bikePartRepos
 
     public async Task<BikePartDto?> GetByIdAsync(Guid id)
     {
-        var bikePart = await bikePartRepository.Query()
-            .Where(bp => bp.Id == id)
-            .ProjectTo<BikePartDto>(mapper.ConfigurationProvider)
-            .FirstOrDefaultAsync();
+        var bikePart = await bikePartRepository.GetByIdAsync(id);
+        if (bikePart == null)
+        {
+            return null;
+        }
 
-        return bikePart;
+        return mapper.Map<BikePartDto>(bikePart);
     }
 
     public async Task<List<BikePartDto>?> GetAllByBikeIdAsync(Guid bikeId)

@@ -24,10 +24,25 @@ public class BikePartServiceTests
         _mapper = cfg.CreateMapper();
     }
 
-    [Fact, Description("as GetAllAsync relies on .ProjectTo we cannot test this in a unit test")]
+    [Fact]
     public async Task GetByIdAsync()
     {
+        // Arrange
+        var repo = new Mock<IRepository<BikePart>>();
+        var bikeRepo = new Mock<IRepository<Bike>>();
+        var input = new BikePart { Id = Guid.NewGuid(), Name = "Chain", Position = BikePartPosition.Chain, Bike = new Bike { Id = Guid.NewGuid() } };
+        repo.Setup(r => r.GetByIdAsync(input.Id, It.IsAny<CancellationToken>())).ReturnsAsync(input);
+        var sut = new BikePartService(_mapper, repo.Object, bikeRepo.Object);
 
+        // Act
+        var result = await sut.GetByIdAsync(input.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Id.Should().Be(input.Id);
+        result.Name.Should().Be(input.Name);
+        result.Position.Should().Be(input.Position);
+        result.BikeId.Should().Be(input.Bike.Id);
     }
 
     [Fact]
