@@ -15,9 +15,9 @@ public class ServiceEventServiceTests
 {
     private readonly IMapper _mapper;
 
-    private Mock<IServiceEventRepository> _serviceEventRepo;
-    private Mock<IBikePartRepository> _bikePartRepo;
-    private Mock<IBikeRepository> _bikeRepo;
+    private readonly Mock<IServiceEventRepository> _serviceEventRepo;
+    private readonly Mock<IBikePartRepository> _bikePartRepo;
+    private readonly Mock<IBikeRepository> _bikeRepo;
 
     public ServiceEventServiceTests()
     {
@@ -64,16 +64,79 @@ public class ServiceEventServiceTests
         result.Cost.Should().Be(input.Cost);
     }
 
-    [Fact, Description("as GetAllByBikePartIdAsync relies on .ProjectTo we cannot test this in a unit test")]
-    public async Task GetAllByBikePartIdAsync()
+    [Fact]
+    public async Task GetAllByBikePartIdAsync_ReturnsServiceEvents()
     {
+        // Arrange
+        var bikePart = new BikePart() { Id = Guid.NewGuid() };
+        var input = new List<ServiceEvent>
+        {
+            new() {
+                Id = Guid.NewGuid(),
+                BikePart = bikePart,
+                Description = "Test Service Event 1",
+                StateAfterService = 80,
+                Cost = 20,
+                CreatedAtUtc = DateTime.UtcNow
+            },
+            new() {
+                Id = Guid.NewGuid(),
+                BikePart = bikePart,
+                Description = "Test Service Event 2",
+                StateAfterService = 60,
+                Cost = 50,
+                CreatedAtUtc = DateTime.UtcNow
+            }
+        };
+        _serviceEventRepo.Setup(r => r.GetAllByBikePartIdAsync(bikePart.Id, It.IsAny<CancellationToken>())).ReturnsAsync(input);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
+        // Act
+        var result = await sut.GetAllByBikePartIdAsync(bikePart.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.First().Id.Should().Be(input[0].Id);
+        result.First().BikePartId.Should().Be(input[0].BikePart.Id);
+        result.Last().Id.Should().Be(input[1].Id);
     }
 
-    [Fact, Description("as GetAllByBikeIdAsync relies on .ProjectTo we cannot test this in a unit test")]
-    public async Task GetAllByBikeIdAsync()
+    [Fact]
+    public async Task GetAllByBikeIdAsync_ReturnsServiceEvents()
     {
+        // Arrange
+        var bike = new Bike() { Id = Guid.NewGuid() };
+        var input = new List<ServiceEvent>
+        {
+            new() {
+                Id = Guid.NewGuid(),
+                BikePart = new BikePart { Id = Guid.NewGuid(), Bike = bike },
+                Description = "Test Service Event 1",
+                StateAfterService = 80,
+                Cost = 20,
+                CreatedAtUtc = DateTime.UtcNow
+            },
+            new() {
+                Id = Guid.NewGuid(),
+                BikePart = new BikePart { Id = Guid.NewGuid(), Bike = bike },
+                Description = "Test Service Event 2",
+                StateAfterService = 60,
+                Cost = 50,
+                CreatedAtUtc = DateTime.UtcNow
+            }
+        };
+        _serviceEventRepo.Setup(r => r.GetAllByBikeIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(input);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
+        // Act
+        var result = await sut.GetAllByBikeIdAsync(bike.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(2);
+        result.First().Id.Should().Be(input[0].Id);
+        result.Last().Id.Should().Be(input[1].Id);
     }
 
     [Fact]
