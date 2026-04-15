@@ -3,6 +3,7 @@ using AutoMapper;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
 using Moq;
@@ -28,8 +29,8 @@ public class BikePartServiceTests
     public async Task GetByIdAsync()
     {
         // Arrange
-        var repo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikePartRepository>();
+        var bikeRepo = new Mock<IBikeRepository>();
         var input = new BikePart { Id = Guid.NewGuid(), Name = "Chain", Position = BikePartPosition.Chain, Bike = new Bike { Id = Guid.NewGuid() } };
         repo.Setup(r => r.GetByIdAsync(input.Id, It.IsAny<CancellationToken>())).ReturnsAsync(input);
         var sut = new BikePartService(_mapper, repo.Object, bikeRepo.Object);
@@ -49,8 +50,8 @@ public class BikePartServiceTests
     public async Task AddAsync_ReturnsNull_WhenBikeNotFound()
     {
         // Arrange
-        var repo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikePartRepository>();
+        var bikeRepo = new Mock<IBikeRepository>();
         bikeRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Bike?)null);
         var sut = new BikePartService(_mapper, repo.Object, bikeRepo.Object);
 
@@ -70,8 +71,8 @@ public class BikePartServiceTests
     public async Task DeleteAsync_ReturnsFalse_WhenPartNotFound()
     {
         // Arrange
-        var repo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikePartRepository>();
+        var bikeRepo = new Mock<IBikeRepository>();
         repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((BikePart?)null);
         var sut = new BikePartService(_mapper, repo.Object, bikeRepo.Object);
 
@@ -89,8 +90,8 @@ public class BikePartServiceTests
     {
         // Arrange
         var part = new BikePart { Id = Guid.NewGuid(), Name = "X", Position = BikePartPosition.Chain, Bike = new Bike { Id = Guid.NewGuid() } };
-        var repo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikePartRepository>();
+        var bikeRepo = new Mock<IBikeRepository>();
         repo.Setup(r => r.GetByIdAsync(part.Id, It.IsAny<CancellationToken>())).ReturnsAsync(part);
         repo.Setup(r => r.Remove(part));
         repo.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);

@@ -3,6 +3,7 @@ using Backend.Services;
 using Backend.Mapping;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using Backend.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,9 @@ builder.Services.Scan(scan => scan
     .WithScopedLifetime()
 );
 builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+builder.Services.AddScoped<IBikeRepository, BikeRepository>();
+builder.Services.AddScoped<IBikePartRepository, BikePartRepository>();
+builder.Services.AddScoped<IMaintenanceTaskRepository, MaintenanceTaskRepository>();
 
 // Auto Mapper configuration
 builder.Services.AddAutoMapper(

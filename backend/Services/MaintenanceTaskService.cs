@@ -1,25 +1,21 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
-using Microsoft.EntityFrameworkCore;
+using Backend.Repositories;
 
 namespace Backend.Services;
 
-public class MaintenanceTaskService(IMapper mapper, IRepository<MaintenanceTask> maintenanceTaskRepository, IRepository<BikePart> bikePartRepository) : IMaintenanceTaskService
+public class MaintenanceTaskService(IMapper mapper, IMaintenanceTaskRepository maintenanceTaskRepository, IBikePartRepository bikePartRepository) : IMaintenanceTaskService
 {
     public async Task<List<MaintenanceTaskDto>?> GetAllByBikePartIdAsync(Guid bikePartId)
     {
-        if (!await maintenanceTaskRepository.Query().AnyAsync(bp => bp.Id == bikePartId))
+        var maintenanceTasks = await maintenanceTaskRepository.GetAllByBikePartIdAsync(bikePartId);
+        if (maintenanceTasks == null)
         {
             return null;
         }
 
-        return await maintenanceTaskRepository.Query()
-            .Where(mt => mt.BikePart.Id == bikePartId)
-            .ProjectTo<MaintenanceTaskDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+        return mapper.Map<List<MaintenanceTaskDto>>(maintenanceTasks);
     }
 
     public async Task<MaintenanceTaskDto?> AddAsync(Guid bikePartId, MaintenanceTaskDto maintenanceTask)
@@ -49,7 +45,6 @@ public class MaintenanceTaskService(IMapper mapper, IRepository<MaintenanceTask>
     public async Task<MaintenanceTaskDto?> UpdateAsync(Guid id, MaintenanceTaskDto maintenanceTask)
     {
         var existingTask = await maintenanceTaskRepository.GetByIdAsync(id);
-
         if (existingTask == null)
         {
             return null;
@@ -83,21 +78,19 @@ public class MaintenanceTaskService(IMapper mapper, IRepository<MaintenanceTask>
 
     public async Task<bool> DeleteAllByBikePartIdAsync(Guid bikePartId)
     {
-        if (!await bikePartRepository.Query().AnyAsync(bp => bp.Id == bikePartId))
+        var bikePart = await bikePartRepository.GetByIdAsync(bikePartId);
+        if (bikePart == null)
         {
             return false;
         }
 
-        var tasks = await maintenanceTaskRepository.Query()
-            .Where(mt => mt.BikePart.Id == bikePartId)
-            .ToListAsync();
-
-        if (tasks.Count == 0)
+        var maintenanceTasks = await maintenanceTaskRepository.GetAllByBikePartIdAsync(bikePartId);
+        if (maintenanceTasks.Count == 0)
         {
             return true;
         }
 
-        maintenanceTaskRepository.RemoveRange(tasks);
+        maintenanceTaskRepository.RemoveRange(maintenanceTasks);
         await maintenanceTaskRepository.SaveChangesAsync();
 
         return true;

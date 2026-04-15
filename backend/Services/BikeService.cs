@@ -1,19 +1,18 @@
-using AutoMapper.QueryableExtensions;
 using Backend.Data;
 using Backend.Models;
 using Backend.Dtos;
-using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using Backend.Repositories;
 
 namespace Backend.Services;
 
-public class BikeService(IMapper mapper, IRepository<Bike> bikeRepository, IBikePartService bikePartService) : IBikeService
+public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePartService bikePartService) : IBikeService
 {
     public async Task<List<BikeDto>> GetAllAsync()
     {
-        return await bikeRepository.Query()
-            .ProjectTo<BikeDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+        var bikes = await bikeRepository.GetAllAsync();
+
+        return mapper.Map<List<BikeDto>>(bikes);
     }
 
     public async Task<BikeDto> AddAsync(BikeDto bike)
@@ -46,7 +45,7 @@ public class BikeService(IMapper mapper, IRepository<Bike> bikeRepository, IBike
         existingBike.Brand = bike.Brand;
         existingBike.IconId = bike.IconId;
 
-        await bikePartService.UpdateAllAsync(id, bike.Parts);
+        await bikePartService.UpdateAllAsync(bike.Parts);
 
         bikeRepository.Update(existingBike);
         await bikeRepository.SaveChangesAsync();

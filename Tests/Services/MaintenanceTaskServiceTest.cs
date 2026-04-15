@@ -3,6 +3,7 @@ using AutoMapper;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
 using Moq;
@@ -34,8 +35,8 @@ public class MaintenanceTaskServiceTests
     public async Task AddAsync_ReturnsNull_WhenBikePartNotFound()
     {
         // Arrange
-        var repo = new Mock<IRepository<MaintenanceTask>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
+        var repo = new Mock<IMaintenanceTaskRepository>();
+        var bikePartRepo = new Mock<IBikePartRepository>();
         bikePartRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((BikePart?)null);
         var sut = new MaintenanceTaskService(_mapper, repo.Object, bikePartRepo.Object);
 
@@ -50,8 +51,8 @@ public class MaintenanceTaskServiceTests
     public async Task UpdateAsync_ReturnsNull_WhenTaskNotFound()
     {
         // Arrange
-        var repo = new Mock<IRepository<MaintenanceTask>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
+        var repo = new Mock<IMaintenanceTaskRepository>();
+        var bikePartRepo = new Mock<IBikePartRepository>();
         repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((MaintenanceTask?)null);
         var sut = new MaintenanceTaskService(_mapper, repo.Object, bikePartRepo.Object);
 
@@ -66,8 +67,8 @@ public class MaintenanceTaskServiceTests
     public async Task DeleteAsync_ReturnsFalse_WhenTaskNotFound()
     {
         // Arrange
-        var repo = new Mock<IRepository<MaintenanceTask>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
+        var repo = new Mock<IMaintenanceTaskRepository>();
+        var bikePartRepo = new Mock<IBikePartRepository>();
         repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((MaintenanceTask?)null);
         var sut = new MaintenanceTaskService(_mapper, repo.Object, bikePartRepo.Object);
 

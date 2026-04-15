@@ -4,6 +4,7 @@ using AutoMapper.QueryableExtensions;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
 using Moq;
@@ -43,7 +44,7 @@ public class BikeServiceTests
             Parts = [new BikePartDto() { Name = "Chain", Position = BikePartPosition.Chain, BikeId = Guid.Empty }]
         };
 
-        var repo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikeRepository>();
         var partService = new Mock<IBikePartService>();
 
         repo.Setup(r => r.Add(It.IsAny<Bike>()));
@@ -83,7 +84,7 @@ public class BikeServiceTests
     public async Task UpdateAsync_WhenBikeDoesNotExist_ReturnsNull_AndDoesNotSave()
     {
         // Arrange
-        var repo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikeRepository>();
         var partService = new Mock<IBikePartService>();
         repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Bike?)null);
         var sut = new BikeService(_mapper, repo.Object, partService.Object);
@@ -96,7 +97,7 @@ public class BikeServiceTests
         result.Should().BeNull();
         repo.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         repo.Verify(r => r.Update(It.IsAny<Bike>()), Times.Never);
-        partService.Verify(s => s.UpdateAllAsync(It.IsAny<Guid>(), It.IsAny<List<BikePartDto>>()), Times.Never);
+        partService.Verify(s => s.UpdateAllAsync(It.IsAny<List<BikePartDto>>()), Times.Never);
     }
 
     [Fact]
@@ -104,10 +105,10 @@ public class BikeServiceTests
     {
         // Arrange
         var existing = new Bike { Id = Guid.NewGuid(), Name = "Old", Brand = "OldBrand", IconId = 0, Parts = [] };
-        var repo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikeRepository>();
         var partService = new Mock<IBikePartService>();
         repo.Setup(r => r.GetByIdAsync(existing.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        partService.Setup(s => s.UpdateAllAsync(existing.Id, It.IsAny<List<BikePartDto>>())).ReturnsAsync([]);
+        partService.Setup(s => s.UpdateAllAsync(It.IsAny<List<BikePartDto>>())).ReturnsAsync([]);
         repo.Setup(r => r.Update(existing));
         repo.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var sut = new BikeService(_mapper, repo.Object, partService.Object);
@@ -120,7 +121,7 @@ public class BikeServiceTests
         existing.Name.Should().Be("New");
         existing.Brand.Should().Be("NewBrand");
         existing.IconId.Should().Be(7);
-        partService.Verify(s => s.UpdateAllAsync(existing.Id, input.Parts), Times.Once);
+        partService.Verify(s => s.UpdateAllAsync(input.Parts), Times.Once);
         repo.Verify(r => r.Update(existing), Times.Once);
         repo.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         result.Should().NotBeNull();
@@ -131,7 +132,7 @@ public class BikeServiceTests
     public async Task DeleteAsync_WhenBikeNotFound_ReturnsFalse()
     {
         // Arrange
-        var repo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikeRepository>();
         var partService = new Mock<IBikePartService>();
         repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Bike?)null);
         var sut = new BikeService(_mapper, repo.Object, partService.Object);
@@ -150,7 +151,7 @@ public class BikeServiceTests
     {
         // Arrange
         var existing = new Bike { Id = Guid.NewGuid(), Name = "B", Brand = "X", IconId = 0, Parts = [] };
-        var repo = new Mock<IRepository<Bike>>();
+        var repo = new Mock<IBikeRepository>();
         var partService = new Mock<IBikePartService>();
         repo.Setup(r => r.GetByIdAsync(existing.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
         repo.Setup(r => r.Remove(existing));

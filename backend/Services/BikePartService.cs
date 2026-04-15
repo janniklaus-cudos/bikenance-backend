@@ -3,11 +3,12 @@ using AutoMapper.QueryableExtensions;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using Backend.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
-public class BikePartService(IMapper mapper, IRepository<BikePart> bikePartRepository, IRepository<Bike> bikeRepository) : IBikePartService
+public class BikePartService(IMapper mapper, IBikePartRepository bikePartRepository, IRepository<Bike> bikeRepository) : IBikePartService
 {
 
     public async Task<BikePartDto?> GetByIdAsync(Guid id)
@@ -23,15 +24,13 @@ public class BikePartService(IMapper mapper, IRepository<BikePart> bikePartRepos
 
     public async Task<List<BikePartDto>?> GetAllByBikeIdAsync(Guid bikeId)
     {
-        if (!await bikePartRepository.Query().AnyAsync(b => b.Id == bikeId))
+        var bikeParts = await bikePartRepository.GetAllByBikeIdAsync(bikeId);
+        if (bikeParts == null)
         {
             return null;
         }
 
-        return await bikePartRepository.Query()
-            .Where(bp => bp.Bike.Id == bikeId)
-            .ProjectTo<BikePartDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+        return mapper.Map<List<BikePartDto>>(bikeParts);
     }
 
     public async Task<BikePartDto?> AddAsync(Guid bikeId, BikePartDto bikePart)
@@ -76,11 +75,14 @@ public class BikePartService(IMapper mapper, IRepository<BikePart> bikePartRepos
         return mapper.Map<List<BikePartDto>>(createdBikeParts);
     }
 
-    public async Task<List<BikePartDto>?> UpdateAllAsync(Guid id, List<BikePartDto> bikeParts)
+    public async Task<List<BikePartDto>?> UpdateAllAsync(List<BikePartDto> bikeParts)
     {
-        var existingBikeParts = await bikePartRepository.Query()
-            .Where(bp => bp.Bike.Id == id)
-            .ToListAsync();
+        if (bikeParts == null || bikeParts.Count == 0)
+        {
+            return [];
+        }
+
+        var existingBikeParts = await bikePartRepository.GetAllByBikeIdAsync(bikeParts.First().BikeId);
 
         foreach (var existingBikePart in existingBikeParts)
         {
@@ -114,21 +116,19 @@ public class BikePartService(IMapper mapper, IRepository<BikePart> bikePartRepos
 
     public async Task<bool> DeleteAllByBikeIdAsync(Guid bikeId)
     {
-        if (!await bikeRepository.Query().AnyAsync(b => b.Id == bikeId))
+        var bike = await bikeRepository.GetByIdAsync(bikeId);
+        if (bike == null)
         {
             return false;
         }
 
-        var parts = await bikePartRepository.Query()
-            .Where(bp => bp.Bike.Id == bikeId)
-            .ToListAsync();
-
-        if (parts.Count == 0)
+        var bikeParts = await bikePartRepository.GetAllByBikeIdAsync(bikeId);
+        if (bikeParts.Count == 0)
         {
             return true;
         }
 
-        bikePartRepository.RemoveRange(parts);
+        bikePartRepository.RemoveRange(bikeParts);
         await bikePartRepository.SaveChangesAsync();
 
         return true;

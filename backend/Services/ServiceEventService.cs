@@ -3,15 +3,16 @@ using AutoMapper.QueryableExtensions;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using Backend.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
 public class ServiceEventService(
     IMapper mapper,
-    IRepository<ServiceEvent> serviceEventRepository,
-    IRepository<BikePart> bikePartRepository,
-    IRepository<Bike> bikeRepository) : IServiceEventService
+    IServiceEventRepository serviceEventRepository,
+    IBikePartRepository bikePartRepository,
+    IBikeRepository bikeRepository) : IServiceEventService
 {
     public async Task<ServiceEventDto?> GetByIdAsync(Guid id)
     {
@@ -26,30 +27,24 @@ public class ServiceEventService(
 
     public async Task<List<ServiceEventDto>?> GetAllByBikePartIdAsync(Guid bikePartId)
     {
-        var bikePart = await bikePartRepository.GetByIdAsync(bikePartId);
-        if (bikePart == null)
+        var serviceEvents = await serviceEventRepository.GetAllByBikePartIdAsync(bikePartId);
+        if (serviceEvents == null)
         {
             return null;
         }
 
-        return await serviceEventRepository.Query()
-            .Where(se => se.BikePart.Id == bikePartId)
-            .ProjectTo<ServiceEventDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+        return mapper.Map<List<ServiceEventDto>>(serviceEvents);
     }
 
     public async Task<List<ServiceEventDto>?> GetAllByBikeIdAsync(Guid bikeId)
     {
-        var bike = await bikeRepository.GetByIdAsync(bikeId);
-        if (bike == null)
+        var serviceEvents = await serviceEventRepository.GetAllByBikeIdAsync(bikeId);
+        if (serviceEvents == null)
         {
             return null;
         }
 
-        return await serviceEventRepository.Query()
-            .Where(se => se.BikePart.Bike.Id == bikeId)
-            .ProjectTo<ServiceEventDto>(mapper.ConfigurationProvider)
-            .ToListAsync();
+        return mapper.Map<List<ServiceEventDto>>(serviceEvents);
     }
 
     public async Task<ServiceEventDto?> AddAsync(Guid bikePartId, ServiceEventDto serviceEvent)
@@ -115,10 +110,7 @@ public class ServiceEventService(
             return false;
         }
 
-        var serviceEvents = await serviceEventRepository.Query()
-            .Where(se => se.BikePart.Id == bikePartId)
-            .ToListAsync();
-
+        var serviceEvents = await serviceEventRepository.GetAllByBikePartIdAsync(bikePartId);
         if (serviceEvents.Count == 0)
         {
             return true;
@@ -138,10 +130,7 @@ public class ServiceEventService(
             return false;
         }
 
-        var serviceEvents = await serviceEventRepository.Query()
-            .Where(se => se.BikePart.Bike.Id == bikeId)
-            .ToListAsync();
-
+        var serviceEvents = await serviceEventRepository.GetAllByBikeIdAsync(bikeId);
         if (serviceEvents.Count == 0)
         {
             return true;

@@ -3,6 +3,7 @@ using AutoMapper;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
+using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
 using Moq;
@@ -13,6 +14,10 @@ namespace Tests.Services;
 public class ServiceEventServiceTests
 {
     private readonly IMapper _mapper;
+
+    private Mock<IServiceEventRepository> _serviceEventRepo;
+    private Mock<IBikePartRepository> _bikePartRepo;
+    private Mock<IBikeRepository> _bikeRepo;
 
     public ServiceEventServiceTests()
     {
@@ -25,15 +30,16 @@ public class ServiceEventServiceTests
         });
         cfg.AssertConfigurationIsValid();
         _mapper = cfg.CreateMapper();
+
+        _serviceEventRepo = new Mock<IServiceEventRepository>();
+        _bikePartRepo = new Mock<IBikePartRepository>();
+        _bikeRepo = new Mock<IBikeRepository>();
     }
 
     [Fact]
     public async Task GetByIdAsync()
     {
         // Arrange
-        var serviceEventRepo = new Mock<IRepository<ServiceEvent>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
         var input = new ServiceEvent
         {
             Id = Guid.NewGuid(),
@@ -43,8 +49,8 @@ public class ServiceEventServiceTests
             Cost = 20,
             CreatedAtUtc = DateTime.UtcNow
         };
-        serviceEventRepo.Setup(r => r.GetByIdAsync(input.Id)).ReturnsAsync(input);
-        var sut = new ServiceEventService(_mapper, serviceEventRepo.Object, bikePartRepo.Object, bikeRepo.Object);
+        _serviceEventRepo.Setup(r => r.GetByIdAsync(input.Id)).ReturnsAsync(input);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
         // Act
         var result = await sut.GetByIdAsync(input.Id);
@@ -74,11 +80,8 @@ public class ServiceEventServiceTests
     public async Task AddAsync_ReturnsNull_WhenBikePartNotFound()
     {
         // Arrange
-        var serviceEventRepo = new Mock<IRepository<ServiceEvent>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
-        bikePartRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((BikePart?)null);
-        var sut = new ServiceEventService(_mapper, serviceEventRepo.Object, bikePartRepo.Object, bikeRepo.Object);
+        _bikePartRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((BikePart?)null);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
         // Act
         var result = await sut.AddAsync(Guid.NewGuid(), new ServiceEventDto());
@@ -91,11 +94,8 @@ public class ServiceEventServiceTests
     public async Task UpdateAsync_ReturnsNull_WhenServiceEventNotFound()
     {
         // Arrange
-        var serviceEventRepo = new Mock<IRepository<ServiceEvent>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
-        serviceEventRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((ServiceEvent?)null);
-        var sut = new ServiceEventService(_mapper, serviceEventRepo.Object, bikePartRepo.Object, bikeRepo.Object);
+        _serviceEventRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((ServiceEvent?)null);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
         // Act
         var result = await sut.UpdateAsync(Guid.NewGuid(), new ServiceEventDto());
@@ -108,11 +108,8 @@ public class ServiceEventServiceTests
     public async Task DeleteAsync_ReturnsFalse_WhenServiceEventNotFound()
     {
         // Arrange
-        var serviceEventRepo = new Mock<IRepository<ServiceEvent>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
-        serviceEventRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((ServiceEvent?)null);
-        var sut = new ServiceEventService(_mapper, serviceEventRepo.Object, bikePartRepo.Object, bikeRepo.Object);
+        _serviceEventRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((ServiceEvent?)null);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
         // Act
         var result = await sut.DeleteAsync(Guid.NewGuid());
@@ -125,11 +122,8 @@ public class ServiceEventServiceTests
     public async Task DeleteAllByBikePartIdAsync_ReturnsFalse_WhenBikePartNotFound()
     {
         // Arrange
-        var serviceEventRepo = new Mock<IRepository<ServiceEvent>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
-        bikePartRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((BikePart?)null);
-        var sut = new ServiceEventService(_mapper, serviceEventRepo.Object, bikePartRepo.Object, bikeRepo.Object);
+        _bikePartRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((BikePart?)null);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
         // Act
         var result = await sut.DeleteAllByBikePartIdAsync(Guid.NewGuid());
@@ -142,11 +136,8 @@ public class ServiceEventServiceTests
     public async Task DeleteAllByBikeIdAsync_ReturnsFalse_WhenBikeNotFound()
     {
         // Arrange
-        var serviceEventRepo = new Mock<IRepository<ServiceEvent>>();
-        var bikePartRepo = new Mock<IRepository<BikePart>>();
-        var bikeRepo = new Mock<IRepository<Bike>>();
-        bikeRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Bike?)null);
-        var sut = new ServiceEventService(_mapper, serviceEventRepo.Object, bikePartRepo.Object, bikeRepo.Object);
+        _bikeRepo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Bike?)null);
+        var sut = new ServiceEventService(_mapper, _serviceEventRepo.Object, _bikePartRepo.Object, _bikeRepo.Object);
 
         // Act
         var result = await sut.DeleteAllByBikeIdAsync(Guid.NewGuid());

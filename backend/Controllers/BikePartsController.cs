@@ -46,10 +46,10 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
         return CreatedAtAction(nameof(GetAllByBikeId), new { bikeId }, createdParts);
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBikePart(Guid id, [FromBody] List<BikePartDto> bikeParts)
+    [HttpPut]
+    public async Task<IActionResult> UpdateBikePart([FromBody] List<BikePartDto> bikeParts)
     {
-        var updatedPart = await bikePartService.UpdateAllAsync(id, bikeParts);
+        var updatedPart = await bikePartService.UpdateAllAsync(bikeParts);
         if (updatedPart is null)
         {
             return NotFound();
