@@ -62,12 +62,12 @@ public class BikeServiceTests
     public async Task AddAsync_CreateAndSave()
     {
         // Arrange
-        var input = new BikeDto
+        var input = new BikeCreateDto
         {
             Name = "My Bike",
             Brand = "Brand",
             IconId = 2,
-            Parts = [new BikePartDto() { Name = "Chain", Position = BikePartPosition.Chain, BikeId = Guid.Empty }]
+            Parts = [new BikePartCreateDto() { Name = "Chain", Position = BikePartPosition.Chain }]
         };
 
         _bikeRepoMock.Setup(r => r.Add(It.IsAny<Bike>()));
@@ -76,7 +76,7 @@ public class BikeServiceTests
 
 
         _partServiceMock.Setup(s => s.AddAllByBikeIdAsync(
-                input.Id,
+                It.IsAny<Guid>(),
                 input.Parts))
             .ReturnsAsync([]);
 
@@ -94,7 +94,7 @@ public class BikeServiceTests
 
         _partServiceMock.Verify(s => s.AddAllByBikeIdAsync(
             result.Id,
-            It.Is<List<BikePartDto>>(p => p.Count == input.Parts.Count)
+            It.Is<List<BikePartCreateDto>>(p => p.Count == input.Parts.Count)
         ), Times.Once);
 
         _bikeRepoMock.Verify(r => r.SaveChangesAsync(), Times.Once);

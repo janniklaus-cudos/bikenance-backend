@@ -1,13 +1,10 @@
-using System.ComponentModel;
 using AutoMapper;
-using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
 using Moq;
-using Xunit;
 
 namespace Tests.Services;
 

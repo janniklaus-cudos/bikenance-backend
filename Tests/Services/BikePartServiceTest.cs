@@ -50,14 +50,14 @@ public class BikePartServiceTests
     }
 
     [Fact]
-    public async Task AddAsync_ReturnsNull_WhenBikeNotFound()
+    public async Task AddAllByBikeIdAsync_ReturnsNull_WhenBikeNotFound()
     {
         // Arrange
         _bikeRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync((Bike?)null);
         var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
 
         // Act
-        var result = await sut.AddAsync(Guid.NewGuid(), new BikePartDto());
+        var result = await sut.AddAllByBikeIdAsync(Guid.NewGuid(), new List<BikePartCreateDto>());
 
         // Assert
         result.Should().BeNull();

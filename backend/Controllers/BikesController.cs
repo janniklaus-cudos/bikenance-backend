@@ -18,7 +18,7 @@ public class BikesController(IBikeService bikeService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddBike([FromBody] BikeDto bike)
+    public async Task<IActionResult> AddBike([FromBody] BikeCreateDto bike)
     {
         var createdBike = await bikeService.AddAsync(bike);
         return CreatedAtAction(nameof(GetAllBikes), new { }, createdBike);

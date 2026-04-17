@@ -7,5 +7,5 @@ public record BikeDto
     public string Brand { get; init; } = "";
     public int IconId { get; init; }
     public DateTime CreatedAtUtc { get; init; }
-    public List<BikePartDto> Parts { get; init; } = new();
+    public List<BikePartDto> Parts { get; init; } = [];
 }

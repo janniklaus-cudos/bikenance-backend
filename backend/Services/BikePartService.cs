@@ -33,28 +33,7 @@ public class BikePartService(IMapper mapper, IBikePartRepository bikePartReposit
         return mapper.Map<List<BikePartDto>>(bikeParts);
     }
 
-    public async Task<BikePartDto?> AddAsync(Guid bikeId, BikePartDto bikePart)
-    {
-        var bike = await bikeRepository.GetByIdAsync(bikeId);
-        if (bike == null)
-        {
-            return null;
-        }
-
-        var createdBikePart = new BikePart
-        {
-            Name = bikePart.Name,
-            Position = bikePart.Position,
-            Bike = bike
-        };
-
-        bikePartRepository.Add(createdBikePart);
-        await bikePartRepository.SaveChangesAsync();
-
-        return mapper.Map<BikePartDto>(createdBikePart);
-    }
-
-    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartDto> bikeParts)
+    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartCreateDto> bikeParts)
     {
         var bike = await bikeRepository.GetByIdAsync(bikeId);
         if (bike == null)

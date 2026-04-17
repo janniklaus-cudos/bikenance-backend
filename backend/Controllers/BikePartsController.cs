@@ -35,7 +35,7 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddBikeParts([FromQuery] Guid bikeId, [FromBody] List<BikePartDto> bikeParts)
+    public async Task<IActionResult> AddBikeParts([FromQuery] Guid bikeId, [FromBody] List<BikePartCreateDto> bikeParts)
     {
         var createdParts = await bikePartService.AddAllByBikeIdAsync(bikeId, bikeParts);
         if (createdParts is null)

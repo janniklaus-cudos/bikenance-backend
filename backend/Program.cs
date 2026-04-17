@@ -22,15 +22,24 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 
 // own services configuration
 builder.Services.Scan(scan => scan
+    // servicees
     .FromAssemblyOf<BikeService>()
     .AddClasses(classes => classes.Where(t => t.Name.EndsWith("Service")))
     .AsImplementedInterfaces()
     .WithScopedLifetime()
+    // repositories
+    .FromAssemblyOf<IBikeRepository>()
+    .AddClasses(classes => classes.Where(t => t.Name.EndsWith("Repository")))
+    .AsImplementedInterfaces()
+    .WithScopedLifetime()
 );
 builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
-builder.Services.AddScoped<IBikeRepository, BikeRepository>();
-builder.Services.AddScoped<IBikePartRepository, BikePartRepository>();
-builder.Services.AddScoped<IMaintenanceTaskRepository, MaintenanceTaskRepository>();
+
+
+// CORS configuration
+const string CORS_VITE_DEV = "ViteDev";
+builder.Services.AddCors(o => o.AddPolicy(CORS_VITE_DEV, p =>
+    p.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
 
 // Auto Mapper configuration
 builder.Services.AddAutoMapper(
@@ -41,6 +50,8 @@ builder.Services.AddAutoMapper(
     );
 
 var app = builder.Build();
+
+app.UseCors(CORS_VITE_DEV);
 
 // only in development: swagger and db seeding
 if (app.Environment.IsDevelopment())

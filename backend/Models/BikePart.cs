@@ -12,7 +12,7 @@ public class BikePart
     [MaxLength(100)]
     public string Name { get; set; } = "";
 
-    public BikePartPosition Position { get; set; }
+    public BikePartPosition Position { get; set; } = BikePartPosition.NONE;
 
     [Required]
     public virtual Bike Bike { get; set; } = null!;
