@@ -15,7 +15,7 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
         return mapper.Map<List<BikeDto>>(bikes);
     }
 
-    public async Task<BikeDto> AddAsync(BikeCreateDto bike)
+    public async Task<BikeDto> AddAsync(BikeDto bike)
     {
         var createdBike = new Bike
         {

@@ -7,6 +7,6 @@ public record BikePartDto
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
-    public BikePartPosition Position { get; init; }
+    public BikePartPosition Position { get; init; } = BikePartPosition.NONE;
     public Guid BikeId { get; init; }
 }

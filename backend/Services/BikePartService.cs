@@ -33,7 +33,7 @@ public class BikePartService(IMapper mapper, IBikePartRepository bikePartReposit
         return mapper.Map<List<BikePartDto>>(bikeParts);
     }
 
-    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartCreateDto> bikeParts)
+    public async Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartDto> bikeParts)
     {
         var bike = await bikeRepository.GetByIdAsync(bikeId);
         if (bike == null)

@@ -50,6 +50,29 @@ public class BikePartServiceTests
     }
 
     [Fact]
+    public async Task AddAllByBikeIdAsync()
+    {
+        // Arrange
+        var bike = new Bike { Id = Guid.NewGuid() };
+        _bikeRepoMock.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>())).ReturnsAsync(bike);
+        var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
+        var input = new List<BikePartDto>
+        {
+            new() { Name = "Chain", Position = BikePartPosition.Chain},
+            new() { Name = "Custom" }
+        };
+
+        // Act
+        var result = await sut.AddAllByBikeIdAsync(bike.Id, input);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().HaveCount(input.Count);
+        result[0].Name.Should().Be(input[0].Name);
+        result[1].Position.Should().Be(BikePartPosition.NONE);
+    }
+
+    [Fact]
     public async Task AddAllByBikeIdAsync_ReturnsNull_WhenBikeNotFound()
     {
         // Arrange
@@ -57,7 +80,7 @@ public class BikePartServiceTests
         var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
 
         // Act
-        var result = await sut.AddAllByBikeIdAsync(Guid.NewGuid(), new List<BikePartCreateDto>());
+        var result = await sut.AddAllByBikeIdAsync(Guid.NewGuid(), []);
 
         // Assert
         result.Should().BeNull();
