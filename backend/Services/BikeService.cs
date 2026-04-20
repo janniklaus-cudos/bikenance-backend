@@ -45,10 +45,10 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
         existingBike.Brand = bike.Brand;
         existingBike.IconId = bike.IconId;
 
-        await bikePartService.UpdateAllAsync(bike.Parts);
-
         bikeRepository.Update(existingBike);
         await bikeRepository.SaveChangesAsync();
+
+        await bikePartService.UpdateAllAsync(id, bike.Parts);
 
         return mapper.Map<BikeDto>(existingBike);
     }

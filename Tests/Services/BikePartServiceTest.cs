@@ -90,8 +90,7 @@ public class BikePartServiceTests
     public async Task UpdateAllAsync_UpdatesParts_WhenBikeExists()
     {
         // Arrange
-        var bikeId = Guid.NewGuid();
-        var bike = new Bike { Id = bikeId };
+        var bike = new Bike { Id = Guid.NewGuid() };
         var existingParts = new List<BikePart>
         {
             new BikePart { Id = Guid.NewGuid(), Name = "Chain", Position = BikePartPosition.Chain, Bike = bike },
@@ -99,24 +98,85 @@ public class BikePartServiceTests
         };
         var updateDtos = new List<BikePartDto>
         {
-            new BikePartDto { Id = existingParts[0].Id, Name = "Chain Updated", Position = BikePartPosition.Chain, BikeId = bikeId },
-            new BikePartDto { Id = existingParts[1].Id, Name = "Tire Updated", Position = BikePartPosition.FrontWheelTire, BikeId = bikeId }
+            new BikePartDto { Id = existingParts[0].Id, Name = "Chain Updated", Position = BikePartPosition.Chain, BikeId = bike.Id },
+            new BikePartDto { Id = existingParts[1].Id, Name = "Tire Updated", Position = BikePartPosition.FrontWheelTire, BikeId = bike.Id }
         };
 
-        _bikeRepoMock.Setup(r => r.GetByIdAsync(bikeId, It.IsAny<CancellationToken>())).ReturnsAsync(bike);
-        _bikePartRepoMock.Setup(r => r.GetAllByBikeIdAsync(bikeId, It.IsAny<CancellationToken>())).ReturnsAsync(existingParts);
-        _bikePartRepoMock.Setup(r => r.UpdateRange(existingParts));
+        _bikeRepoMock.Setup(r => r.GetByIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(bike);
+        _bikePartRepoMock.Setup(r => r.GetAllByBikeIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existingParts);
         _bikePartRepoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
 
         // Act
-        var result = await sut.UpdateAllAsync(updateDtos);
+        var result = await sut.UpdateAllAsync(bike.Id, updateDtos);
 
         // Assert
         result.Should().NotBeNull();
         result[0].Name.Should().Be("Chain Updated");
-        _bikePartRepoMock.Verify(r => r.UpdateRange(existingParts), Times.Once);
-        _bikePartRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _bikePartRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task UpdateAllAsync_RemovesParts_WhenBikeExists()
+    {
+        // Arrange
+        var bike = new Bike { Id = Guid.NewGuid() };
+        var existingParts = new List<BikePart>
+        {
+            new BikePart { Id = Guid.NewGuid(), Name = "Chain", Position = BikePartPosition.Chain, Bike = bike },
+            new BikePart { Id = Guid.NewGuid(), Name = "Tire", Position = BikePartPosition.FrontWheelTire, Bike = bike }
+        };
+        var updatedDtos = new List<BikePartDto>
+        {
+            new BikePartDto { Id = existingParts[1].Id, Name = "Tire Updated", Position = BikePartPosition.FrontWheelTire, BikeId = bike.Id }
+        };
+
+        _bikeRepoMock.Setup(r => r.GetByIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(bike);
+        _bikePartRepoMock.Setup(r => r.GetAllByBikeIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existingParts);
+        _bikePartRepoMock.Setup(r => r.Remove(It.IsAny<BikePart>()));
+        _bikePartRepoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
+
+        // Act
+        var result = await sut.UpdateAllAsync(bike.Id, updatedDtos);
+
+        // Assert
+        result.Should().NotBeNull();
+        _bikePartRepoMock.Verify(r => r.Remove(existingParts[0]), Times.Once);
+        _bikePartRepoMock.Verify(r => r.UpdateRange(existingParts), Times.Never);
+        _bikePartRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()));
+    }
+
+    [Fact]
+    public async Task UpdateAllAsync_AddsNewParts_WhenBikeExists()
+    {
+        // Arrange
+        var bike = new Bike { Id = Guid.NewGuid() };
+        var existingParts = new List<BikePart>
+        {
+            new() { Id = Guid.NewGuid(), Name = "Tire", Position = BikePartPosition.FrontWheelTire, Bike = bike }
+        };
+        var updatedDtos = new List<BikePartDto>
+        {
+            new() { Id = existingParts[0].Id, Name = "Tire Updated", Position = BikePartPosition.FrontWheelTire, BikeId = bike.Id },
+            new() { Name = "Custom" }
+
+        };
+
+        _bikeRepoMock.Setup(r => r.GetByIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(bike);
+        _bikePartRepoMock.Setup(r => r.GetAllByBikeIdAsync(bike.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existingParts);
+        _bikePartRepoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
+
+        // Act
+        var result = await sut.UpdateAllAsync(bike.Id, updatedDtos);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Count.Should().Be(2);
+        result[1].Name.Should().Be(updatedDtos[1].Name);
+        _bikePartRepoMock.Verify(r => r.AddRange(It.IsAny<IEnumerable<BikePart>>()), Times.Once);
+        _bikePartRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()));
     }
 
     [Fact]
@@ -127,11 +187,10 @@ public class BikePartServiceTests
         var sut = new BikePartService(_mapper, _bikePartRepoMock.Object, _bikeRepoMock.Object);
 
         // Act
-        var result = await sut.UpdateAllAsync(new List<BikePartDto>());
+        var result = await sut.UpdateAllAsync(new Guid(), new List<BikePartDto>());
 
         // Assert
-        result.Should().BeEmpty();
-        _bikePartRepoMock.Verify(r => r.UpdateRange(It.IsAny<IEnumerable<BikePart>>()), Times.Never);
+        result.Should().BeNull();
         _bikePartRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 

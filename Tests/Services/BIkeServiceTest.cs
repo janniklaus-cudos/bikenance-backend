@@ -118,7 +118,7 @@ public class BikeServiceTests
         result.Should().BeNull();
         _bikeRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
         _bikeRepoMock.Verify(r => r.Update(It.IsAny<Bike>()), Times.Never);
-        _partServiceMock.Verify(s => s.UpdateAllAsync(It.IsAny<List<BikePartDto>>()), Times.Never);
+        _partServiceMock.Verify(s => s.UpdateAllAsync(It.IsAny<Guid>(), It.IsAny<List<BikePartDto>>()), Times.Never);
     }
 
     [Fact]
@@ -127,7 +127,7 @@ public class BikeServiceTests
         // Arrange
         var existing = new Bike { Id = Guid.NewGuid(), Name = "Old", Brand = "OldBrand", IconId = 0, Parts = [] };
         _bikeRepoMock.Setup(r => r.GetByIdAsync(existing.Id, It.IsAny<CancellationToken>())).ReturnsAsync(existing);
-        _partServiceMock.Setup(s => s.UpdateAllAsync(It.IsAny<List<BikePartDto>>())).ReturnsAsync([]);
+        _partServiceMock.Setup(s => s.UpdateAllAsync(It.IsAny<Guid>(), It.IsAny<List<BikePartDto>>())).ReturnsAsync([]);
         _bikeRepoMock.Setup(r => r.Update(existing));
         _bikeRepoMock.Setup(r => r.SaveChangesAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         var sut = new BikeService(_mapper, _bikeRepoMock.Object, _partServiceMock.Object);
@@ -140,7 +140,7 @@ public class BikeServiceTests
         existing.Name.Should().Be("New");
         existing.Brand.Should().Be("NewBrand");
         existing.IconId.Should().Be(7);
-        _partServiceMock.Verify(s => s.UpdateAllAsync(input.Parts), Times.Once);
+        _partServiceMock.Verify(s => s.UpdateAllAsync(existing.Id, input.Parts), Times.Once);
         _bikeRepoMock.Verify(r => r.Update(existing), Times.Once);
         _bikeRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
         result.Should().NotBeNull();

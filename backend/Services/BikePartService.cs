@@ -54,15 +54,15 @@ public class BikePartService(IMapper mapper, IBikePartRepository bikePartReposit
         return mapper.Map<List<BikePartDto>>(createdBikeParts);
     }
 
-    public async Task<List<BikePartDto>?> UpdateAllAsync(List<BikePartDto> bikeParts)
+    public async Task<List<BikePartDto>?> UpdateAllAsync(Guid bikeId, List<BikePartDto> bikeParts)
     {
-        if (bikeParts == null || bikeParts.Count == 0)
+        var bike = await bikeRepository.GetByIdAsync(bikeId);
+        if (bikeParts == null || bike == null)
         {
-            return [];
+            return null;
         }
 
-        var existingBikeParts = await bikePartRepository.GetAllByBikeIdAsync(bikeParts.First().BikeId);
-
+        var existingBikeParts = await bikePartRepository.GetAllByBikeIdAsync(bikeId);
         foreach (var existingBikePart in existingBikeParts)
         {
             var updatedPart = bikeParts.FirstOrDefault(bp => bp.Id == existingBikePart.Id);
@@ -71,12 +71,19 @@ public class BikePartService(IMapper mapper, IBikePartRepository bikePartReposit
                 existingBikePart.Name = updatedPart.Name;
                 existingBikePart.Position = updatedPart.Position;
             }
+            else
+            {
+                bikePartRepository.Remove(existingBikePart);
+            }
         }
-
-        bikePartRepository.UpdateRange(existingBikeParts);
         await bikePartRepository.SaveChangesAsync();
 
-        return mapper.Map<List<BikePartDto>>(existingBikeParts);
+
+        var newBikePartDtos = bikeParts.FindAll(bp => bp.Id == Guid.Empty).ToList();
+        var newBikeParts = await AddAllByBikeIdAsync(bikeId, newBikePartDtos);
+
+        var existingBikePartDtos = mapper.Map<List<BikePartDto>>(existingBikeParts);
+        return [.. existingBikePartDtos, .. newBikeParts ?? []];
     }
 
     public async Task<bool> DeleteAsync(Guid id)

@@ -8,7 +8,7 @@ public interface IBikePartService
     Task<BikePartDto?> GetByIdAsync(Guid id);
     Task<List<BikePartDto>?> GetAllByBikeIdAsync(Guid bikeId);
     Task<List<BikePartDto>?> AddAllByBikeIdAsync(Guid bikeId, List<BikePartDto> bikeParts);
-    Task<List<BikePartDto>?> UpdateAllAsync(List<BikePartDto> bikePart);
+    Task<List<BikePartDto>?> UpdateAllAsync(Guid bikeId, List<BikePartDto> bikePart);
     Task<bool> DeleteAsync(Guid id);
     Task<bool> DeleteAllByBikeIdAsync(Guid bikeId);
 }
