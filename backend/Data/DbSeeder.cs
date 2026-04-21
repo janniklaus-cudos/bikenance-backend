@@ -84,7 +84,7 @@ public static class DbSeeder
             {
                 BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.Chain),
                 Description = "Lubricate chain and inspect for wear.",
-                TimeInterval = TimeSpan.FromDays(14),
+                DaysInterval = 14,
                 Cost = 10,
                 Importance = ImportanceLevel.HIGH,
                 IsActive = true,
@@ -93,7 +93,7 @@ public static class DbSeeder
             {
                 BikePart = roadBike.Parts.First(p => p.Position == BikePartPosition.FrontBrakes),
                 Description = "Check brake pads and replace if worn.",
-                TimeInterval = TimeSpan.FromDays(30),
+                DaysInterval = 30,
                 Cost = 25,
                 Importance = ImportanceLevel.MEDIUM,
                 IsActive = true,
@@ -102,7 +102,7 @@ public static class DbSeeder
             {
                 BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.RearChainWheel),
                 Description = "Inspect rear chain wheel and tighten bolts.",
-                TimeInterval = TimeSpan.FromDays(45),
+                DaysInterval = 45,
                 Cost = 15,
                 Importance = ImportanceLevel.MEDIUM,
                 IsActive = true,

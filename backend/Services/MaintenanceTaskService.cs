@@ -30,7 +30,10 @@ public class MaintenanceTaskService(IMapper mapper, IMaintenanceTaskRepository m
         {
             BikePart = bikePart,
             Description = maintenanceTask.Description,
-            TimeInterval = maintenanceTask.TimeInterval,
+            IsDaysIntervalActive = maintenanceTask.IsDaysIntervalActive,
+            DaysInterval = maintenanceTask.DaysInterval,
+            IsDistanceIntervalActive = maintenanceTask.IsDistanceIntervalActive,
+            DistanceInterval = maintenanceTask.DistanceInterval,
             Cost = maintenanceTask.Cost,
             Importance = maintenanceTask.Importance,
             IsActive = maintenanceTask.IsActive
@@ -51,7 +54,10 @@ public class MaintenanceTaskService(IMapper mapper, IMaintenanceTaskRepository m
         }
 
         existingTask.Description = maintenanceTask.Description;
-        existingTask.TimeInterval = maintenanceTask.TimeInterval;
+        existingTask.IsDaysIntervalActive = maintenanceTask.IsDaysIntervalActive;
+        existingTask.DaysInterval = maintenanceTask.DaysInterval;
+        existingTask.IsDistanceIntervalActive = maintenanceTask.IsDistanceIntervalActive;
+        existingTask.DistanceInterval = maintenanceTask.DistanceInterval;
         existingTask.Cost = maintenanceTask.Cost;
         existingTask.Importance = maintenanceTask.Importance;
         existingTask.IsActive = maintenanceTask.IsActive;

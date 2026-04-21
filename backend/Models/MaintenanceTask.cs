@@ -16,7 +16,18 @@ public class MaintenanceTask
     public string Description { get; set; } = String.Empty;
 
     [Required]
-    public TimeSpan TimeInterval { get; set; } = TimeSpan.FromDays(30);
+    public bool IsDaysIntervalActive { get; set; } = true;
+
+    [Required]
+    [Range(0, int.MaxValue)]
+    public int DaysInterval { get; set; } = 90;
+
+    [Required]
+    public bool IsDistanceIntervalActive { get; set; } = true;
+
+    [Required]
+    [Range(0, int.MaxValue)]
+    public int DistanceInterval { get; set; } = 1000;
 
     [Required]
     [Range(0, int.MaxValue)]
