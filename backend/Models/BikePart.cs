@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models;
 
@@ -16,4 +17,10 @@ public class BikePart
 
     [Required]
     public virtual Bike Bike { get; set; } = null!;
+
+    [Required]
+    public virtual List<ServiceEvent> ServiceEvents { get; set; } = [];
+
+    [Required]
+    public virtual MaintenanceTask? MaintenanceTask { get; set; }
 }

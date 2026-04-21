@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Backend.Models;
 
@@ -9,6 +10,7 @@ public class MaintenanceTask
     public Guid Id { get; set; } = Guid.NewGuid();
 
     [Required]
+    [ForeignKey("BikePartId")]
     public required virtual BikePart BikePart { get; set; }
 
     [Required]

@@ -1,10 +1,8 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using Backend.Data;
 using Backend.Dtos;
 using Backend.Models;
 using Backend.Repositories;
-using Microsoft.EntityFrameworkCore;
 
 namespace Backend.Services;
 
