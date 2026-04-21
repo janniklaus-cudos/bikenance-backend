@@ -51,15 +51,28 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
         };
     }
 
-    private static DateTime CalculateNextServiceDueDate(BikePart bikePart, MaintenanceTask maintenanceTask)
+    private static DateTime? CalculateNextServiceDueDate(BikePart bikePart, MaintenanceTask maintenanceTask)
     {
         var latestKnownDate = CalculateLatestServiceEventDate(bikePart);
 
         var daysIntervalDueDate = latestKnownDate.AddDays(maintenanceTask.DaysInterval);
         var distanceIntervalDueDate = DateTime.MaxValue; // todo placeholder
-        var nextServiceDueDate = DateTime.Compare(daysIntervalDueDate, distanceIntervalDueDate) < 0 ? daysIntervalDueDate : distanceIntervalDueDate;
 
-        return nextServiceDueDate;
+        if (maintenanceTask.IsDaysIntervalActive && maintenanceTask.IsDistanceIntervalActive)
+        {
+            return DateTime.Compare(daysIntervalDueDate, distanceIntervalDueDate) < 0 ? daysIntervalDueDate : distanceIntervalDueDate;
+        }
+        else if (maintenanceTask.IsDaysIntervalActive)
+        {
+            return daysIntervalDueDate;
+        }
+        else if (maintenanceTask.IsDistanceIntervalActive)
+        {
+            return distanceIntervalDueDate;
+        }
+
+        // should not happen, but if there is no active interval, we cannot predict the next service due date
+        return null;
     }
 
     private static DateTime CalculateLatestServiceEventDate(BikePart bikePart)
