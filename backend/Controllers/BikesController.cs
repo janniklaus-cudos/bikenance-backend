@@ -9,10 +9,10 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 public class BikesController(IBikeService bikeService) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetById()
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
-        var bike = await bikeService.GetByIdAsync();
+        var bike = await bikeService.GetByIdAsync(id);
         if (bike == null)
         {
             return NotFound();
@@ -25,10 +25,6 @@ public class BikesController(IBikeService bikeService) : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var bikes = await bikeService.GetAllAsync();
-        if (bikes == null)
-        {
-            return NotFound();
-        }
 
         return Ok(bikes);
     }

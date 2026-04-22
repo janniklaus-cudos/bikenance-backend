@@ -6,6 +6,7 @@ using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -21,13 +22,14 @@ public class ServiceEventServiceTests
 
     public ServiceEventServiceTests()
     {
+        var loggerFactory = LoggerFactory.Create(b => { });
         var cfg = new MapperConfiguration(c =>
         {
             c.CreateMap<ServiceEvent, ServiceEventDto>()
                 .ForMember(dto => dto.BikePartId, opt => opt.MapFrom(model => model.BikePart.Id));
             c.CreateMap<ServiceEventDto, ServiceEvent>()
                 .ForMember(model => model.BikePart, opt => opt.Ignore());
-        });
+        }, loggerFactory);
         cfg.AssertConfigurationIsValid();
         _mapper = cfg.CreateMapper();
 

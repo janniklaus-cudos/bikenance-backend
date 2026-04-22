@@ -4,6 +4,7 @@ using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace Tests.Services;
@@ -16,10 +17,11 @@ public class MaintenanceTaskServiceTests
 
     public MaintenanceTaskServiceTests()
     {
+        var loggerFactory = LoggerFactory.Create(b => { });
         var cfg = new MapperConfiguration(c =>
         {
             c.CreateMap<MaintenanceTask, MaintenanceTaskDto>();
-        });
+        }, loggerFactory);
         cfg.AssertConfigurationIsValid();
         _mapper = cfg.CreateMapper();
 

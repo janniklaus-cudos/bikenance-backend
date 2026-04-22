@@ -8,9 +8,9 @@ namespace Backend.Services;
 
 public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePartService bikePartService) : IBikeService
 {
-    public async Task<BikeDto> GetByIdAsync()
+    public async Task<BikeDto> GetByIdAsync(Guid id)
     {
-        var bike = await bikeRepository.GetByIdAsync();
+        var bike = await bikeRepository.GetByIdAsync(id);
 
         return mapper.Map<BikeDto>(bike);
     }
