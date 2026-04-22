@@ -41,7 +41,7 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
         {
             Bike = bike,
             Title = journey.Title,
-            Kilometer = journey.Kilometer,
+            Distance = journey.Distance,
             JourneyDate = journey.JourneyDate,
         };
 
@@ -63,7 +63,7 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
         {
             Bike = bike,
             Title = journey.Title,
-            Kilometer = journey.Kilometer,
+            Distance = journey.Distance,
             JourneyDate = journey.JourneyDate,
         }).ToList();
 
@@ -82,7 +82,7 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
         }
 
         existingJourney.Title = journey.Title;
-        existingJourney.Kilometer = journey.Kilometer;
+        existingJourney.Distance = journey.Distance;
         existingJourney.JourneyDate = journey.JourneyDate;
 
         journeyRepository.Update(existingJourney);

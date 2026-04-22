@@ -54,10 +54,11 @@ public class EvaluationServiceTests
             Bike = bike
         };
 
+        var daysSinceLastService = 2;
         part.ServiceEvents =
         [
-            CreateServiceEvent(part, 10, now.AddDays(-5)),
-            CreateServiceEvent(part, 20, now.AddDays(-2)), // latest
+            CreateServiceEvent(part, 10, now.AddDays(-(2*daysSinceLastService))),
+            CreateServiceEvent(part, 20, now.AddDays(-daysSinceLastService)), // latest
         ];
 
         _bikePartRepoMock
@@ -71,7 +72,9 @@ public class EvaluationServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result!.CostTotal.Should().Be(30);
+        result.DaysSinceLastService.Should().Be(daysSinceLastService);
+        result.DistanceSinceLastService.Should().Be(250);
+        result.CostTotal.Should().Be(30);
         result.NextServiceDueDate.Should().BeNull();
     }
 

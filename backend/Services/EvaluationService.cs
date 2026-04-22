@@ -39,7 +39,7 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
         var serviceEvents = bikePart.ServiceEvents;
         var latestKnownDate = CalculateLatestServiceEventDate(bikePart);
 
-        var daysSinceLastService = latestKnownDate.Subtract(DateTime.UtcNow).Days;
+        var daysSinceLastService = DateTime.Now.Subtract(latestKnownDate).Days;
         var distanceSinceLastService = 250; // todo placeholder;
         var costTotal = serviceEvents.Sum(se => se.Cost);
 

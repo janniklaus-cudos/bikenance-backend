@@ -36,7 +36,7 @@ public class JourneyServiceTests
     {
         // Arrange
         var bike = new Bike { Id = Guid.NewGuid() };
-        var journey = new Journey { Id = Guid.NewGuid(), Title = "J1", Kilometer = 12, Bike = bike };
+        var journey = new Journey { Id = Guid.NewGuid(), Title = "J1", Distance = 12, Bike = bike };
 
         _journeyRepoMock
             .Setup(r => r.GetByIdAsync(journey.Id, It.IsAny<CancellationToken>()))
@@ -51,7 +51,7 @@ public class JourneyServiceTests
         result.Should().NotBeNull();
         result!.Id.Should().Be(journey.Id);
         result.Title.Should().Be(journey.Title);
-        result.Kilometer.Should().Be(journey.Kilometer);
+        result.Distance.Should().Be(journey.Distance);
         result.BikeId.Should().Be(bike.Id);
     }
 
@@ -80,8 +80,8 @@ public class JourneyServiceTests
         var bike = new Bike { Id = bikeId };
         var journeys = new List<Journey>
         {
-            new() { Id = Guid.NewGuid(), Title = "A", Kilometer = 10, Bike = bike },
-            new() { Id = Guid.NewGuid(), Title = "B", Kilometer = 20, Bike = bike },
+            new() { Id = Guid.NewGuid(), Title = "A", Distance = 10, Bike = bike },
+            new() { Id = Guid.NewGuid(), Title = "B", Distance = 20, Bike = bike },
         };
 
         _journeyRepoMock
@@ -122,7 +122,7 @@ public class JourneyServiceTests
     {
         // Arrange
         var bike = new Bike { Id = Guid.NewGuid() };
-        var dto = new JourneyDto { Title = "New", Kilometer = 42, BikeId = bike.Id };
+        var dto = new JourneyDto { Title = "New", Distance = 42, BikeId = bike.Id };
 
         _bikeRepoMock
             .Setup(r => r.GetByIdAsync(bike.Id, It.IsAny<CancellationToken>()))
@@ -141,13 +141,13 @@ public class JourneyServiceTests
         // Assert
         result.Should().NotBeNull();
         result!.Title.Should().Be(dto.Title);
-        result.Kilometer.Should().Be(dto.Kilometer);
+        result.Distance.Should().Be(dto.Distance);
         result.BikeId.Should().Be(bike.Id);
 
         _journeyRepoMock.Verify(r => r.Add(It.Is<Journey>(j =>
             j.Bike == bike &&
             j.Title == dto.Title &&
-            j.Kilometer == dto.Kilometer
+            j.Distance == dto.Distance
         )), Times.Once);
 
         _journeyRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -164,7 +164,7 @@ public class JourneyServiceTests
         var sut = new JourneyService(_mapper, _journeyRepoMock.Object, _bikeRepoMock.Object);
 
         // Act
-        var result = await sut.AddAsync(Guid.NewGuid(), new JourneyDto { Title = "X", Kilometer = 1 });
+        var result = await sut.AddAsync(Guid.NewGuid(), new JourneyDto { Title = "X", Distance = 1 });
 
         // Assert
         result.Should().BeNull();
@@ -179,8 +179,8 @@ public class JourneyServiceTests
         var bike = new Bike { Id = Guid.NewGuid() };
         var dtos = new List<JourneyDto>
         {
-            new() { Title = "A", Kilometer = 10 },
-            new() { Title = "B", Kilometer = 20 },
+            new() { Title = "A", Distance = 10 },
+            new() { Title = "B", Distance = 20 },
         };
 
         _bikeRepoMock
@@ -234,8 +234,8 @@ public class JourneyServiceTests
     {
         // Arrange
         var bike = new Bike { Id = Guid.NewGuid() };
-        var existing = new Journey { Id = Guid.NewGuid(), Title = "Old", Kilometer = 1, Bike = bike };
-        var update = new JourneyDto { Id = existing.Id, Title = "New", Kilometer = 99, BikeId = bike.Id };
+        var existing = new Journey { Id = Guid.NewGuid(), Title = "Old", Distance = 1, Bike = bike };
+        var update = new JourneyDto { Id = existing.Id, Title = "New", Distance = 99, BikeId = bike.Id };
 
         _journeyRepoMock
             .Setup(r => r.GetByIdAsync(existing.Id, It.IsAny<CancellationToken>()))
@@ -254,12 +254,12 @@ public class JourneyServiceTests
         // Assert
         result.Should().NotBeNull();
         result!.Title.Should().Be("New");
-        result.Kilometer.Should().Be(99);
+        result.Distance.Should().Be(99);
 
         _journeyRepoMock.Verify(r => r.Update(It.Is<Journey>(j =>
             j.Id == existing.Id &&
             j.Title == "New" &&
-            j.Kilometer == 99
+            j.Distance == 99
         )), Times.Once);
 
         _journeyRepoMock.Verify(r => r.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -276,7 +276,7 @@ public class JourneyServiceTests
         var sut = new JourneyService(_mapper, _journeyRepoMock.Object, _bikeRepoMock.Object);
 
         // Act
-        var result = await sut.UpdateAsync(Guid.NewGuid(), new JourneyDto { Title = "X", Kilometer = 1 });
+        var result = await sut.UpdateAsync(Guid.NewGuid(), new JourneyDto { Title = "X", Distance = 1 });
 
         // Assert
         result.Should().BeNull();
@@ -308,7 +308,7 @@ public class JourneyServiceTests
     {
         // Arrange
         var bike = new Bike { Id = Guid.NewGuid() };
-        var journey = new Journey { Id = Guid.NewGuid(), Title = "X", Kilometer = 1, Bike = bike };
+        var journey = new Journey { Id = Guid.NewGuid(), Title = "X", Distance = 1, Bike = bike };
 
         _journeyRepoMock
             .Setup(r => r.GetByIdAsync(journey.Id, It.IsAny<CancellationToken>()))
@@ -381,8 +381,8 @@ public class JourneyServiceTests
         var bike = new Bike { Id = Guid.NewGuid() };
         var journeys = new List<Journey>
         {
-            new() { Id = Guid.NewGuid(), Title = "A", Kilometer = 1, Bike = bike },
-            new() { Id = Guid.NewGuid(), Title = "B", Kilometer = 2, Bike = bike },
+            new() { Id = Guid.NewGuid(), Title = "A", Distance = 1, Bike = bike },
+            new() { Id = Guid.NewGuid(), Title = "B", Distance = 2, Bike = bike },
         };
 
         _bikeRepoMock

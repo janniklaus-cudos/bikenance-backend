@@ -62,19 +62,19 @@ public static class DbSeeder
             {
                 Bike = roadBike,
                 Title = "Saturday Long Ride",
-                Kilometer = 42,
+                Distance = 42,
             },
             new Journey
             {
                 Bike = roadBike,
                 Title = "Sunday Morning Sprint",
-                Kilometer = 18,
+                Distance = 18,
             },
             new Journey
             {
                 Bike = cityBike,
                 Title = "Daily Commute",
-                Kilometer = 12,
+                Distance = 12,
             },
         };
 

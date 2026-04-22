@@ -17,7 +17,7 @@ public class Journey
 
     [Required]
     [Range(0, int.MaxValue)]
-    public int Kilometer { get; set; } = 0;
+    public int Distance { get; set; } = 0;
 
     [Required]
     public DateOnly JourneyDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
