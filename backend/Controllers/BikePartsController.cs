@@ -35,7 +35,7 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddBikeParts([FromQuery] Guid bikeId, [FromBody] List<BikePartDto> bikeParts)
+    public async Task<IActionResult> AddAll([FromQuery] Guid bikeId, [FromBody] List<BikePartDto> bikeParts)
     {
         var createdParts = await bikePartService.AddAllByBikeIdAsync(bikeId, bikeParts);
         if (createdParts is null)
@@ -47,7 +47,7 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
     }
 
     [HttpPut]
-    public async Task<IActionResult> UpdateBikePart([FromQuery] Guid bikeId, [FromBody] List<BikePartDto> bikeParts)
+    public async Task<IActionResult> Update([FromQuery] Guid bikeId, [FromBody] List<BikePartDto> bikeParts)
     {
         var updatedPart = await bikePartService.UpdateAllAsync(bikeId, bikeParts);
         if (updatedPart is null)
@@ -59,7 +59,7 @@ public class BikePartsController(IBikePartService bikePartService) : ControllerB
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteBikePart(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var deleted = await bikePartService.DeleteAsync(id);
         if (!deleted)

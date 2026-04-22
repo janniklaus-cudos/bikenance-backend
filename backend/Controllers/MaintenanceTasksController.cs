@@ -22,7 +22,7 @@ public class MaintenanceTasksController(IMaintenanceTaskService maintenanceTaskS
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddMaintenanceTask([FromQuery] Guid bikePartId, [FromBody] MaintenanceTaskDto maintenanceTask)
+    public async Task<IActionResult> Add([FromQuery] Guid bikePartId, [FromBody] MaintenanceTaskDto maintenanceTask)
     {
         var createdTask = await maintenanceTaskService.AddAsync(bikePartId, maintenanceTask);
         if (createdTask is null)
@@ -34,7 +34,7 @@ public class MaintenanceTasksController(IMaintenanceTaskService maintenanceTaskS
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateMaintenanceTask(Guid id, [FromBody] MaintenanceTaskDto maintenanceTask)
+    public async Task<IActionResult> Update(Guid id, [FromBody] MaintenanceTaskDto maintenanceTask)
     {
         var updatedTask = await maintenanceTaskService.UpdateAsync(id, maintenanceTask);
         if (updatedTask is null)
@@ -46,7 +46,7 @@ public class MaintenanceTasksController(IMaintenanceTaskService maintenanceTaskS
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteMaintenanceTask(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var deleted = await maintenanceTaskService.DeleteAsync(id);
         if (!deleted)

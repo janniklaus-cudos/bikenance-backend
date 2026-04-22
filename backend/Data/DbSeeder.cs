@@ -45,7 +45,7 @@ public static class DbSeeder
                 new BikePart {  Name = "Front Wheel Tire", Position = BikePartPosition.FrontWheelTire },
                 new BikePart {  Name = "Rear Wheel Tire", Position = BikePartPosition.RearWheelTire },
                 new BikePart {  Name = "Saddle", Position = BikePartPosition.Saddle },
-                new BikePart {  Name = "Pedal", Position = BikePartPosition.Pedal },
+                new BikePart {  Name = "Pedal", Position = BikePartPosition.Pedals },
                 new BikePart {  Name = "Rear Chain Wheel", Position = BikePartPosition.RearChainWheel },
             },
             CreatedAtUtc = DateTime.UtcNow - TimeSpan.FromDays(30),
@@ -148,7 +148,7 @@ public static class DbSeeder
             },
             new ServiceEvent
             {
-                BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.Pedal),
+                BikePart = cityBike.Parts.First(p => p.Position == BikePartPosition.Pedals),
                 Description = "Repaired pedal bearing and replaced cracked plastic platform.",
                 StateAfterService = 80,
                 Cost = 20,

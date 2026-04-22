@@ -9,7 +9,7 @@ namespace Backend.Controllers;
 public class ServiceEventsController(IServiceEventService serviceEventService) : ControllerBase
 {
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetServiceEvent(Guid id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         var serviceEvent = await serviceEventService.GetByIdAsync(id);
         if (serviceEvent is null)
@@ -21,7 +21,7 @@ public class ServiceEventsController(IServiceEventService serviceEventService) :
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllServiceEvents([FromQuery] Guid? bikePartId, [FromQuery] Guid? bikeId)
+    public async Task<IActionResult> GetAllByBikePartId([FromQuery] Guid? bikePartId, [FromQuery] Guid? bikeId)
     {
         if (bikePartId.HasValue)
         {
@@ -49,7 +49,7 @@ public class ServiceEventsController(IServiceEventService serviceEventService) :
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddServiceEvent([FromQuery] Guid bikePartId, [FromBody] ServiceEventDto serviceEvent)
+    public async Task<IActionResult> AddByBikePartId([FromQuery] Guid bikePartId, [FromBody] ServiceEventDto serviceEvent)
     {
         var createdServiceEvent = await serviceEventService.AddAsync(bikePartId, serviceEvent);
         if (createdServiceEvent is null)
@@ -57,11 +57,11 @@ public class ServiceEventsController(IServiceEventService serviceEventService) :
             return NotFound();
         }
 
-        return CreatedAtAction(nameof(GetServiceEvent), new { id = createdServiceEvent.Id }, createdServiceEvent);
+        return CreatedAtAction(nameof(GetAllByBikePartId), new { id = createdServiceEvent.Id }, createdServiceEvent);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateServiceEvent(Guid id, [FromBody] ServiceEventDto serviceEvent)
+    public async Task<IActionResult> Update(Guid id, [FromBody] ServiceEventDto serviceEvent)
     {
         var updatedServiceEvent = await serviceEventService.UpdateAsync(id, serviceEvent);
         if (updatedServiceEvent is null)
@@ -73,7 +73,7 @@ public class ServiceEventsController(IServiceEventService serviceEventService) :
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteServiceEvent(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var deleted = await serviceEventService.DeleteAsync(id);
         if (!deleted)
@@ -85,7 +85,7 @@ public class ServiceEventsController(IServiceEventService serviceEventService) :
     }
 
     [HttpDelete]
-    public async Task<IActionResult> DeleteAllServiceEvents([FromQuery] Guid? bikePartId, [FromQuery] Guid? bikeId)
+    public async Task<IActionResult> DeleteAllByBikePartId([FromQuery] Guid? bikePartId, [FromQuery] Guid? bikeId)
     {
         if (bikePartId.HasValue)
         {

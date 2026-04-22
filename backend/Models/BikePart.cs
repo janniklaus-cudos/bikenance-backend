@@ -22,5 +22,5 @@ public class BikePart
     public virtual List<ServiceEvent> ServiceEvents { get; set; } = [];
 
     [Required]
-    public virtual MaintenanceTask? MaintenanceTask { get; set; }
+    public virtual MaintenanceTask? MaintenanceTask { get; set; } = null;
 }

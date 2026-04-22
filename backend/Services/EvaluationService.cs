@@ -78,7 +78,7 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
     private static DateTime CalculateLatestServiceEventDate(BikePart bikePart)
     {
         var serviceEvents = bikePart.ServiceEvents;
-        var latestServiceEvent = serviceEvents.OrderByDescending(se => se.CreatedAtUtc).FirstOrDefault();
-        return latestServiceEvent?.CreatedAtUtc ?? bikePart.Bike.CreatedAtUtc;
+        var latestServiceEvent = serviceEvents.OrderByDescending(se => se.DateOfService).FirstOrDefault();
+        return latestServiceEvent?.DateOfService ?? bikePart.Bike.CreatedAtUtc;
     }
 }

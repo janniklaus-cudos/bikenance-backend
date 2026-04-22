@@ -24,6 +24,9 @@ public class ServiceEvent
     public int Cost { get; set; } = 0;
 
     [Required]
+    public DateTime DateOfService { get; set; } = DateTime.Now;
+
+    [Required]
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
 }
