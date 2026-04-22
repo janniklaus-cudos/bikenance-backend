@@ -4,6 +4,7 @@ using Backend.Mapping;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Backend.Repositories;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,12 +43,26 @@ builder.Services.AddCors(o => o.AddPolicy(CORS_VITE_DEV, p =>
     p.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod()));
 
 // Auto Mapper configuration
-builder.Services.AddAutoMapper(
-    typeof(BikeProfile),
-    typeof(BikePartProfile),
-    typeof(MaintenanceTaskProfile),
-    typeof(ServiceEventProfile)
-    );
+builder.Services.AddSingleton(provider =>
+{
+    var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+
+    var config = new MapperConfiguration(cfg =>
+    {
+        cfg.AddMaps(typeof(BikeProfile).Assembly);
+    }, loggerFactory);
+
+    // only during DEV is this recommended
+    config.AssertConfigurationIsValid();
+
+    return config;
+});
+
+builder.Services.AddScoped<IMapper>(provider =>
+{
+    var config = provider.GetRequiredService<MapperConfiguration>();
+    return config.CreateMapper(provider.GetService);
+});
 
 var app = builder.Build();
 

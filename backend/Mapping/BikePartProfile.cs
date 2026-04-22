@@ -12,6 +12,8 @@ public class BikePartProfile : Profile
             .ForMember(dto => dto.BikeId, opt => opt.MapFrom(model => model.Bike.Id));
 
         CreateMap<BikePartDto, BikePart>()
-            .ForMember(model => model.Bike, opt => opt.Ignore());
+            .ForMember(model => model.Bike, opt => opt.Ignore())
+            .ForMember(model => model.ServiceEvents, opt => opt.Ignore())
+            .ForMember(model => model.MaintenanceTask, opt => opt.Ignore());
     }
 }
