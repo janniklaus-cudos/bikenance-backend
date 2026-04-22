@@ -20,5 +20,8 @@ public class Journey
     public int Kilometer { get; set; } = 0;
 
     [Required]
+    public DateOnly JourneyDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+
+    [Required]
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 }
