@@ -9,23 +9,40 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 public class BikesController(IBikeService bikeService) : ControllerBase
 {
+    [HttpGet]
+    public async Task<IActionResult> GetById()
+    {
+        var bike = await bikeService.GetByIdAsync();
+        if (bike == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(bike);
+    }
 
     [HttpGet]
-    public async Task<IActionResult> GetAllBikes()
+    public async Task<IActionResult> GetAll()
     {
         var bikes = await bikeService.GetAllAsync();
+        if (bikes == null)
+        {
+            return NotFound();
+        }
+
         return Ok(bikes);
     }
 
     [HttpPost]
-    public async Task<IActionResult> AddBike([FromBody] BikeDto bike)
+    public async Task<IActionResult> Add([FromBody] BikeDto bike)
     {
         var createdBike = await bikeService.AddAsync(bike);
-        return CreatedAtAction(nameof(GetAllBikes), new { }, createdBike);
+
+        return CreatedAtAction(nameof(GetAll), new { }, createdBike);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateBike(Guid id, [FromBody] BikeDto bike)
+    public async Task<IActionResult> Update(Guid id, [FromBody] BikeDto bike)
     {
         var updatedBike = await bikeService.UpdateAsync(id, bike);
         if (updatedBike is null)
@@ -37,8 +54,9 @@ public class BikesController(IBikeService bikeService) : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteBike(Guid id)
+    public async Task<IActionResult> Delete(Guid id)
     {
+        // todo implement cascade to delete everything else
         var deleted = await bikeService.DeleteAsync(id);
         if (!deleted)
         {
