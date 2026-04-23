@@ -16,7 +16,7 @@ public class EvaluationServiceTests
         _bikePartRepoMock = new Mock<IBikePartRepository>();
     }
 
-    private static ServiceEvent CreateServiceEvent(BikePart part, int cost, DateTime dateOfService) =>
+    private static ServiceEvent CreateServiceEvent(BikePart part, int cost, DateOnly dateOfService) =>
         new()
         {
             BikePart = part,
@@ -45,7 +45,7 @@ public class EvaluationServiceTests
     public async Task EvaluateBikePartAsync_ReturnsSinceLastService_WhenNoMaintenanceTask()
     {
         // Arrange
-        var now = DateTime.UtcNow;
+        var now = DateTime.Today;
 
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-10) };
         var part = new BikePart
@@ -57,8 +57,8 @@ public class EvaluationServiceTests
         var daysSinceLastService = 2;
         part.ServiceEvents =
         [
-            CreateServiceEvent(part, 10, now.AddDays(-(2*daysSinceLastService))),
-            CreateServiceEvent(part, 20, now.AddDays(-daysSinceLastService)), // latest
+            CreateServiceEvent(part, 10, DateOnly.FromDateTime(now).AddDays(-(2*daysSinceLastService))),
+            CreateServiceEvent(part, 20, DateOnly.FromDateTime(now).AddDays(-daysSinceLastService)), // latest
         ];
 
         _bikePartRepoMock
@@ -82,7 +82,7 @@ public class EvaluationServiceTests
     public async Task EvaluateBikePartAsync_SetsNextServiceDueDate_WhenDaysIntervalActive()
     {
         // Arrange
-        var now = DateTime.UtcNow;
+        var now = DateTime.Today;
 
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-100) };
         var part = new BikePart
@@ -102,7 +102,7 @@ public class EvaluationServiceTests
         var serviceEventDate = -10;
         part.ServiceEvents =
         [
-            CreateServiceEvent(part, 5, now.AddDays(serviceEventDate)),
+            CreateServiceEvent(part, 5, DateOnly.FromDateTime(now).AddDays(serviceEventDate)),
         ];
 
         _bikePartRepoMock
@@ -123,7 +123,7 @@ public class EvaluationServiceTests
     public async Task EvaluateBikePartAsync_UsesBikeCreatedAt_WhenNoServiceEvents()
     {
         // Arrange
-        var now = DateTime.UtcNow;
+        var now = DateTime.Today;
 
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-40) };
         var part = new BikePart
@@ -158,7 +158,7 @@ public class EvaluationServiceTests
     public async Task EvaluateBikePartAsync_ReturnsNullNextServiceDueDate_WhenNoActiveIntervals()
     {
         // Arrange
-        var now = DateTime.UtcNow;
+        var now = DateTime.Today;
 
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-10) };
         var part = new BikePart
@@ -177,7 +177,7 @@ public class EvaluationServiceTests
 
         part.ServiceEvents =
         [
-            CreateServiceEvent(part, 1, now.AddDays(-1)),
+            CreateServiceEvent(part, 1, DateOnly.FromDateTime(now).AddDays(-1)),
         ];
 
         _bikePartRepoMock

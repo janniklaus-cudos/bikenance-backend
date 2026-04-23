@@ -60,7 +60,8 @@ public class ServiceEventService(
             BikePart = bikePart,
             Description = serviceEvent.Description,
             StateAfterService = serviceEvent.StateAfterService,
-            Cost = serviceEvent.Cost
+            Cost = serviceEvent.Cost,
+            DateOfService = serviceEvent.DateOfService,
         };
 
         serviceEventRepository.Add(createdServiceEvent);
@@ -81,6 +82,7 @@ public class ServiceEventService(
         existingEvent.Description = serviceEvent.Description;
         existingEvent.StateAfterService = serviceEvent.StateAfterService;
         existingEvent.Cost = serviceEvent.Cost;
+        existingEvent.DateOfService = serviceEvent.DateOfService;
 
         serviceEventRepository.Update(existingEvent);
         await serviceEventRepository.SaveChangesAsync();

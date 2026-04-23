@@ -7,6 +7,6 @@ public record ServiceEventDto
     public string Description { get; init; } = string.Empty;
     public int StateAfterService { get; init; }
     public int Cost { get; init; } = 0;
-    public DateTime DateOfService { get; init; }
+    public DateOnly DateOfService { get; init; }
     public DateTime CreatedAtUtc { get; init; }
 }
