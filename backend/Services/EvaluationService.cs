@@ -6,7 +6,7 @@ using Backend.Repositories;
 
 namespace Backend.Services;
 
-public class EvaluationService(IBikePartRepository bikePartRepository) : IEvaluationService
+public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyRepository journeyRepository) : IEvaluationService
 {
     public async Task<BikePartEvaluationDto?> EvaluateBikePartAsync(Guid bikePartId)
     {
@@ -16,7 +16,7 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
             return null;
         }
 
-        var evaluationSinceLastService = CalculateSinceLastService(bikePart);
+        var evaluationSinceLastService = await CalculateSinceLastService(bikePart);
 
         // if there is no maintenance task, we cannot predict the next service due date
         var maintenanceTask = bikePart.MaintenanceTask;
@@ -25,7 +25,7 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
             return evaluationSinceLastService;
         }
 
-        var nextServiceDueDate = CalculateNextServiceDueDate(bikePart, maintenanceTask);
+        var nextServiceDueDate = CalculateNextServiceDueDate(bikePart, maintenanceTask, evaluationSinceLastService);
 
         return evaluationSinceLastService with
         {
@@ -34,33 +34,44 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
 
     }
 
-    private static BikePartEvaluationDto CalculateSinceLastService(BikePart bikePart)
+    private async Task<BikePartEvaluationDto> CalculateSinceLastService(BikePart bikePart)
     {
         var serviceEvents = bikePart.ServiceEvents;
         var latestKnownDate = CalculateLatestServiceEventDate(bikePart);
 
-        var daysSinceLastService = DateTime.Now.Subtract(latestKnownDate).Days;
-        var distanceSinceLastService = 250; // todo placeholder;
-        var costTotal = serviceEvents.Sum(se => se.Cost);
+        var daysSinceLastService = DateTime.Today.Subtract(latestKnownDate.ToDateTime(TimeOnly.MinValue)).Days;
+        var distanceSinceLastService = await journeyRepository.GetDistanceAfterDateByBikeId(bikePart.Bike.Id, latestKnownDate);
+        int? averageCostPerService = null;
+        if (serviceEvents?.Count > 0) averageCostPerService = (int)Math.Round(serviceEvents.Average(se => se.Cost), 0);
 
         return new BikePartEvaluationDto
         {
             DaysSinceLastService = daysSinceLastService,
             DistanceSinceLastService = distanceSinceLastService,
-            CostTotal = costTotal,
+            AverageCostPerService = averageCostPerService,
         };
     }
 
-    private static DateTime? CalculateNextServiceDueDate(BikePart bikePart, MaintenanceTask maintenanceTask)
+    private static DateOnly? CalculateNextServiceDueDate(BikePart bikePart, MaintenanceTask maintenanceTask, BikePartEvaluationDto evaluationDto)
     {
         var latestKnownDate = CalculateLatestServiceEventDate(bikePart);
 
         var daysIntervalDueDate = latestKnownDate.AddDays(maintenanceTask.DaysInterval);
-        var distanceIntervalDueDate = DateTime.MaxValue; // todo placeholder
+
+        var distancePercentageUntilNextService = (double)evaluationDto.DistanceSinceLastService / maintenanceTask.DistanceInterval;
+        // if we have no distance since the last service, we cannot predict when the distance limit will be achieved
+        // this could be changed by calculating the average km/month with all journeys, but this is a feature for later
+        var distanceIntervalDueDate = DateOnly.MaxValue;
+        if (distancePercentageUntilNextService != 0.0)
+        {
+            var daysSinceLastService = evaluationDto.DaysSinceLastService != 0 ? evaluationDto.DaysSinceLastService : 1;
+            var distanceServiceInDays = daysSinceLastService * (1 / distancePercentageUntilNextService);
+            distanceIntervalDueDate = latestKnownDate.AddDays((int)Math.Round(distanceServiceInDays, 0));
+        }
 
         if (maintenanceTask.IsDaysIntervalActive && maintenanceTask.IsDistanceIntervalActive)
         {
-            return DateTime.Compare(daysIntervalDueDate, distanceIntervalDueDate) < 0 ? daysIntervalDueDate : distanceIntervalDueDate;
+            return daysIntervalDueDate.CompareTo(distanceIntervalDueDate) < 0 ? daysIntervalDueDate : distanceIntervalDueDate;
         }
         else if (maintenanceTask.IsDaysIntervalActive)
         {
@@ -75,10 +86,10 @@ public class EvaluationService(IBikePartRepository bikePartRepository) : IEvalua
         return null;
     }
 
-    private static DateTime CalculateLatestServiceEventDate(BikePart bikePart)
+    private static DateOnly CalculateLatestServiceEventDate(BikePart bikePart)
     {
         var serviceEvents = bikePart.ServiceEvents;
         var latestServiceEvent = serviceEvents.OrderByDescending(se => se.DateOfService).FirstOrDefault();
-        return latestServiceEvent?.DateOfService.ToDateTime(TimeOnly.MinValue) ?? bikePart.Bike.CreatedAtUtc;
+        return latestServiceEvent?.DateOfService ?? DateOnly.FromDateTime(bikePart.Bike.CreatedAtUtc);
     }
 }

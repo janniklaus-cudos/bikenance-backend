@@ -1,3 +1,4 @@
+using Backend.Dtos;
 using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
@@ -9,12 +10,11 @@ namespace Tests.Services;
 
 public class EvaluationServiceTests
 {
-    private readonly Mock<IBikePartRepository> _bikePartRepoMock;
+    private readonly Mock<IBikePartRepository> _bikePartRepoMock = new();
+    private readonly Mock<IJourneyRepository> _journeyRepoMock = new();
 
-    public EvaluationServiceTests()
-    {
-        _bikePartRepoMock = new Mock<IBikePartRepository>();
-    }
+    private EvaluationService CreateSut() =>
+        new(_bikePartRepoMock.Object, _journeyRepoMock.Object);
 
     private static ServiceEvent CreateServiceEvent(BikePart part, int cost, DateOnly dateOfService) =>
         new()
@@ -27,69 +27,101 @@ public class EvaluationServiceTests
     [Fact]
     public async Task EvaluateBikePartAsync_ReturnsNull_WhenBikePartNotFound()
     {
-        // Arrange
         _bikePartRepoMock
-            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((BikePart)null!);
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
+            .ReturnsAsync((BikePart?)null);
 
-        var sut = new EvaluationService(_bikePartRepoMock.Object);
+        var sut = CreateSut();
 
-        // Act
         var result = await sut.EvaluateBikePartAsync(Guid.NewGuid());
 
-        // Assert
         result.Should().BeNull();
+        _journeyRepoMock.VerifyNoOtherCalls();
     }
 
     [Fact]
     public async Task EvaluateBikePartAsync_ReturnsSinceLastService_WhenNoMaintenanceTask()
     {
-        // Arrange
         var now = DateTime.Today;
-
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-10) };
-        var part = new BikePart
-        {
-            Id = Guid.NewGuid(),
-            Bike = bike
-        };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
 
-        var daysSinceLastService = 2;
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-2));
         part.ServiceEvents =
         [
-            CreateServiceEvent(part, 10, DateOnly.FromDateTime(now).AddDays(-(2*daysSinceLastService))),
-            CreateServiceEvent(part, 20, DateOnly.FromDateTime(now).AddDays(-daysSinceLastService)), // latest
+            CreateServiceEvent(part, 10, DateOnly.FromDateTime(now.AddDays(-4))),
+            CreateServiceEvent(part, 20, latestServiceDate), // latest
         ];
+        part.MaintenanceTask = null;
 
         _bikePartRepoMock
-            .Setup(r => r.GetByIdAsync(part.Id, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(part.Id))
             .ReturnsAsync(part);
 
-        var sut = new EvaluationService(_bikePartRepoMock.Object);
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(250);
 
-        // Act
+        var sut = CreateSut();
+
         var result = await sut.EvaluateBikePartAsync(part.Id);
 
-        // Assert
         result.Should().NotBeNull();
-        result.DaysSinceLastService.Should().Be(daysSinceLastService);
+        result!.DaysSinceLastService.Should().Be(2);
         result.DistanceSinceLastService.Should().Be(250);
-        result.CostTotal.Should().Be(30);
+        result.AverageCostPerService.Should().Be(15); // (10+20)/2
         result.NextServiceDueDate.Should().BeNull();
+
+        _journeyRepoMock.Verify(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate), Times.Once);
     }
 
     [Fact]
-    public async Task EvaluateBikePartAsync_SetsNextServiceDueDate_WhenDaysIntervalActive()
+    public async Task EvaluateBikePartAsync_UsesBikeCreatedAt_WhenNoServiceEvents()
     {
-        // Arrange
         var now = DateTime.Today;
-
-        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-100) };
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-40) };
         var part = new BikePart
         {
             Id = Guid.NewGuid(),
             Bike = bike,
+            ServiceEvents = []
         };
+
+        part.MaintenanceTask = new MaintenanceTask
+        {
+            BikePart = part,
+            DaysInterval = 10,
+            IsDaysIntervalActive = true,
+            IsDistanceIntervalActive = false,
+        };
+
+        var latestKnownDate = DateOnly.FromDateTime(bike.CreatedAtUtc);
+
+        _bikePartRepoMock
+            .Setup(r => r.GetByIdAsync(part.Id))
+            .ReturnsAsync(part);
+
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestKnownDate))
+            .ReturnsAsync(0);
+
+        var sut = CreateSut();
+
+        var result = await sut.EvaluateBikePartAsync(part.Id);
+
+        result.Should().NotBeNull();
+        result.NextServiceDueDate.Should().Be(latestKnownDate.AddDays(10));
+        result.AverageCostPerService.Should().BeNull();
+
+        _journeyRepoMock.Verify(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestKnownDate), Times.Once);
+    }
+
+    [Fact]
+    public async Task EvaluateBikePartAsync_SetsNextServiceDueDate_WhenDaysIntervalActiveOnly()
+    {
+        var now = DateTime.Today;
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-100) };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
 
         part.MaintenanceTask = new MaintenanceTask
         {
@@ -99,98 +131,196 @@ public class EvaluationServiceTests
             IsDistanceIntervalActive = false,
         };
 
-        var serviceEventDate = -10;
-        part.ServiceEvents =
-        [
-            CreateServiceEvent(part, 5, DateOnly.FromDateTime(now).AddDays(serviceEventDate)),
-        ];
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-10));
+        part.ServiceEvents = [CreateServiceEvent(part, 5, latestServiceDate)];
 
         _bikePartRepoMock
-            .Setup(r => r.GetByIdAsync(part.Id, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(part.Id))
             .ReturnsAsync(part);
 
-        var sut = new EvaluationService(_bikePartRepoMock.Object);
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(123);
 
-        // Act
+        var sut = CreateSut();
+
         var result = await sut.EvaluateBikePartAsync(part.Id);
 
-        // Assert
         result.Should().NotBeNull();
-        result.NextServiceDueDate.Should().Be(now.AddDays(serviceEventDate + part.MaintenanceTask.DaysInterval));
+        result!.NextServiceDueDate.Should().Be(latestServiceDate.AddDays(30));
     }
 
     [Fact]
-    public async Task EvaluateBikePartAsync_UsesBikeCreatedAt_WhenNoServiceEvents()
+    public async Task EvaluateBikePartAsync_SetsNextServiceDueDate_WhenDistanceIntervalActiveOnly()
     {
-        // Arrange
         var now = DateTime.Today;
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-200) };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
 
-        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-40) };
-        var part = new BikePart
-        {
-            Id = Guid.NewGuid(),
-            Bike = bike,
-            ServiceEvents = []
-        };
         part.MaintenanceTask = new MaintenanceTask
         {
             BikePart = part,
-            DaysInterval = 10,
-            IsDaysIntervalActive = true,
-            IsDistanceIntervalActive = false,
+            IsDaysIntervalActive = false,
+            IsDistanceIntervalActive = true,
+            DistanceInterval = 1000
         };
 
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-10));
+        part.ServiceEvents = [CreateServiceEvent(part, 10, latestServiceDate)];
+
+        // distanceSinceLastService = 250 => percentage = 0.25 of 1000
+        // daysSinceLastService = 10 => predicted due in 40 days
         _bikePartRepoMock
-            .Setup(r => r.GetByIdAsync(part.Id, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(part.Id))
             .ReturnsAsync(part);
 
-        var sut = new EvaluationService(_bikePartRepoMock.Object);
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(250);
 
-        // Act
+        var sut = CreateSut();
+
         var result = await sut.EvaluateBikePartAsync(part.Id);
 
-        // Assert
         result.Should().NotBeNull();
-        result.NextServiceDueDate.Should().Be(bike.CreatedAtUtc.AddDays(part.MaintenanceTask.DaysInterval));
+        result.NextServiceDueDate.Should().Be(latestServiceDate.AddDays(40));
+    }
+
+    [Fact]
+    public async Task EvaluateBikePartAsync_WhenBothIntervalsActive_ChoosesEarlierDueDate()
+    {
+        var now = DateTime.Today;
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-200) };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
+
+        part.MaintenanceTask = new MaintenanceTask
+        {
+            BikePart = part,
+            IsDaysIntervalActive = true,
+            IsDistanceIntervalActive = true,
+            DaysInterval = 30,
+            DistanceInterval = 1000
+        };
+
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-10));
+        part.ServiceEvents = [CreateServiceEvent(part, 10, latestServiceDate)];
+
+        // distanceSinceLastService = 500 => percentage 0.5
+        // daysSinceLastService = 10 => distance due in 20 days (earlier than 30)
+        _bikePartRepoMock
+            .Setup(r => r.GetByIdAsync(part.Id))
+            .ReturnsAsync(part);
+
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(500);
+
+        var sut = CreateSut();
+
+        var result = await sut.EvaluateBikePartAsync(part.Id);
+
+        result.Should().NotBeNull();
+        result!.NextServiceDueDate.Should().Be(latestServiceDate.AddDays(20));
     }
 
     [Fact]
     public async Task EvaluateBikePartAsync_ReturnsNullNextServiceDueDate_WhenNoActiveIntervals()
     {
-        // Arrange
         var now = DateTime.Today;
-
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-10) };
-        var part = new BikePart
-        {
-            Id = Guid.NewGuid(),
-            Bike = bike,
-        };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
 
         part.MaintenanceTask = new MaintenanceTask
         {
             BikePart = part,
             DaysInterval = 10,
+            DistanceInterval = 500,
             IsDaysIntervalActive = false,
             IsDistanceIntervalActive = false,
         };
 
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-1));
+        part.ServiceEvents = [CreateServiceEvent(part, 1, latestServiceDate)];
+
+        _bikePartRepoMock
+            .Setup(r => r.GetByIdAsync(part.Id))
+            .ReturnsAsync(part);
+
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(200);
+
+        var sut = CreateSut();
+
+        var result = await sut.EvaluateBikePartAsync(part.Id);
+
+        result.Should().NotBeNull();
+        result!.NextServiceDueDate.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task EvaluateBikePartAsync_WhenDistanceIsZero_AndOnlyDistanceIntervalActive_ReturnsMaxValueDueDate()
+    {
+        var now = DateTime.Today;
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-10) };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
+
+        part.MaintenanceTask = new MaintenanceTask
+        {
+            BikePart = part,
+            IsDaysIntervalActive = false,
+            IsDistanceIntervalActive = true,
+            DistanceInterval = 1000
+        };
+
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-3));
+        part.ServiceEvents = [CreateServiceEvent(part, 10, latestServiceDate)];
+
+        _bikePartRepoMock
+            .Setup(r => r.GetByIdAsync(part.Id))
+            .ReturnsAsync(part);
+
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(0);
+
+        var sut = CreateSut();
+
+        var result = await sut.EvaluateBikePartAsync(part.Id);
+
+        result.Should().NotBeNull();
+        result.NextServiceDueDate.Should().Be(DateOnly.MaxValue);
+    }
+
+    [Fact]
+    public async Task EvaluateBikePartAsync_RoundsAverageCostPerService_ToNearestInt()
+    {
+        var now = DateTime.Today;
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = now.AddDays(-10) };
+        var part = new BikePart { Id = Guid.NewGuid(), Bike = bike };
+
+        var latestServiceDate = DateOnly.FromDateTime(now.AddDays(-1));
         part.ServiceEvents =
         [
-            CreateServiceEvent(part, 1, DateOnly.FromDateTime(now).AddDays(-1)),
+            CreateServiceEvent(part, 10, latestServiceDate),
+            CreateServiceEvent(part, 5, DateOnly.FromDateTime(now.AddDays(-2))),
+            CreateServiceEvent(part, 2, DateOnly.FromDateTime(now.AddDays(-2))),
         ];
 
         _bikePartRepoMock
-            .Setup(r => r.GetByIdAsync(part.Id, It.IsAny<CancellationToken>()))
+            .Setup(r => r.GetByIdAsync(part.Id))
             .ReturnsAsync(part);
 
-        var sut = new EvaluationService(_bikePartRepoMock.Object);
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(0);
 
-        // Act
+        var sut = CreateSut();
+
         var result = await sut.EvaluateBikePartAsync(part.Id);
 
-        // Assert
         result.Should().NotBeNull();
-        result.NextServiceDueDate.Should().BeNull();
+        // average => 10 + 5 + 2 => 17 / 3 = 5.66 => 6 
+        result.AverageCostPerService.Should().Be(6);
     }
 }
