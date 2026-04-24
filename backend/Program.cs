@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using Backend.Repositories;
 using AutoMapper;
+using Backend.Integrations.Strava;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +37,9 @@ builder.Services.Scan(scan => scan
 );
 builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
 
+// strava api integration
+builder.Services.AddHttpClient<StravaClient>();
+builder.Services.AddSingleton<StravaTokenStore>();
 
 // CORS configuration
 const string CORS_VITE_DEV = "ViteDev";

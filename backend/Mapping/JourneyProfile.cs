@@ -1,5 +1,6 @@
 using AutoMapper;
 using Backend.Dtos;
+using Backend.Integrations.Strava.Dtos;
 using Backend.Models;
 
 namespace Backend.Mapping;
@@ -13,5 +14,16 @@ public class JourneyProfile : Profile
 
         CreateMap<JourneyDto, Journey>()
             .ForMember(model => model.Bike, opt => opt.Ignore());
+
+        CreateMap<StravaActivity, JourneyDto>()
+            .ForMember(journey => journey.Id, opt => opt.Ignore())
+            .ForMember(journey => journey.BikeId, opt => opt.Ignore())
+            .ForMember(journey => journey.CreatedAtUtc, opt => opt.Ignore())
+            .ForMember(journey => journey.ExternalId, opt => opt.MapFrom(activity => activity.id))
+            .ForMember(journey => journey.Title, opt => opt.MapFrom(activity => activity.name))
+            .ForMember(journey => journey.Distance, opt => opt.MapFrom(activity => Math.Round(activity.distance / 1000, 0, MidpointRounding.AwayFromZero)))
+            .ForMember(journey => journey.JourneyDate, opt => opt.MapFrom(activity => DateOnly.FromDateTime(activity.start_date)));
+
+
     }
 }

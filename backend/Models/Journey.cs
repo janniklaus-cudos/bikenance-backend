@@ -8,6 +8,8 @@ public class Journey
     [Required]
     public Guid Id { get; set; } = Guid.NewGuid();
 
+    public string? ExternalId { get; set; }
+
     [Required]
     public required virtual Bike Bike { get; set; }
 

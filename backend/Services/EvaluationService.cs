@@ -42,7 +42,7 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
         var daysSinceLastService = DateTime.Today.Subtract(latestKnownDate.ToDateTime(TimeOnly.MinValue)).Days;
         var distanceSinceLastService = await journeyRepository.GetDistanceAfterDateByBikeId(bikePart.Bike.Id, latestKnownDate);
         int? averageCostPerService = null;
-        if (serviceEvents?.Count > 0) averageCostPerService = (int)Math.Round(serviceEvents.Average(se => se.Cost), 0);
+        if (serviceEvents?.Count > 0) averageCostPerService = (int)Math.Round(serviceEvents.Average(se => se.Cost), 0, MidpointRounding.AwayFromZero);
 
         return new BikePartEvaluationDto
         {
