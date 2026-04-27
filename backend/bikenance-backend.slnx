@@ -1,0 +1,8 @@
+<Solution>
+	<Project Path="Backend.csproj" SDK="Microsoft.NET.Sdk">
+		<PropertyGroup>
+			<Nullable>enable</Nullable>
+		</PropertyGroup>
+	</Project>
+	<Project Path="Tests/Tests.csproj" />
+</Solution>
