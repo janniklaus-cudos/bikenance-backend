@@ -7,6 +7,13 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 public class EvaluationController(IEvaluationService evaluationService) : ControllerBase
 {
+    [HttpGet("bike/{bikeId}")]
+    public async Task<IActionResult> GetBikeEvaluation(Guid bikeId)
+    {
+        // todo implement
+        throw new NotImplementedException();
+    }
+
     [HttpGet("bikePart/{bikePartId}")]
     public async Task<IActionResult> GetBikePartEvaluation(Guid bikePartId)
     {
@@ -17,6 +24,18 @@ public class EvaluationController(IEvaluationService evaluationService) : Contro
         }
 
         return Ok(bikePartEvaluation);
+    }
+
+    [HttpGet("bikePartPositionStatus/{bikeId}")]
+    public async Task<IActionResult> GetBikePartPositionStatus(Guid bikeId)
+    {
+        var bikePartStatusColors = await evaluationService.EvaluateBikePartPositionStatusAsync(bikeId);
+        if (bikePartStatusColors == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(bikePartStatusColors);
     }
 
 }

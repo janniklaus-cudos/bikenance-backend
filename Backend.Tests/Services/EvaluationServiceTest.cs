@@ -12,9 +12,10 @@ public class EvaluationServiceTests
 {
     private readonly Mock<IBikePartRepository> _bikePartRepoMock = new();
     private readonly Mock<IJourneyRepository> _journeyRepoMock = new();
+    private readonly Mock<IBikeRepository> _bikeRepoMock = new();
 
     private EvaluationService CreateSut() =>
-        new(_bikePartRepoMock.Object, _journeyRepoMock.Object);
+        new(_bikePartRepoMock.Object, _journeyRepoMock.Object, _bikeRepoMock.Object);
 
     private static ServiceEvent CreateServiceEvent(BikePart part, int cost, DateOnly dateOfService) =>
         new()
@@ -322,5 +323,100 @@ public class EvaluationServiceTests
         result.Should().NotBeNull();
         // average => 10 + 5 + 2 => 17 / 3 = 5.66 => 6 
         result.AverageCostPerService.Should().Be(6);
+    }
+
+
+    [Fact]
+    public async Task EvaluateBikePartPositionStatusAsync_ReturnsNull_WhenBikeNotFound()
+    {
+        _bikeRepoMock
+            .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
+            .ReturnsAsync((Bike?)null);
+
+        var sut = CreateSut();
+
+        var result = await sut.EvaluateBikePartPositionStatusAsync(Guid.NewGuid());
+
+        result.Should().BeNull();
+        _journeyRepoMock.VerifyNoOtherCalls();
+        _bikePartRepoMock.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task EvaluateBikePartPositionStatusAsync_SkipsParts_WhenNoTaskOrNotActiveOrPositionNone()
+    {
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = DateTime.Today.AddDays(-30) };
+
+        var partNoTask = new BikePart { Id = Guid.NewGuid(), Bike = bike, Position = BikePartPosition.RearBrakes };
+        partNoTask.MaintenanceTask = null;
+
+        var partInactiveTask = new BikePart { Id = Guid.NewGuid(), Bike = bike, Position = BikePartPosition.RearWheelRim };
+        partInactiveTask.MaintenanceTask = new MaintenanceTask { BikePart = partInactiveTask, IsActive = false };
+
+        var partPositionNone = new BikePart { Id = Guid.NewGuid(), Bike = bike, Position = BikePartPosition.NONE };
+        partPositionNone.MaintenanceTask = new MaintenanceTask { BikePart = partPositionNone, IsActive = true };
+
+        bike.Parts = [partNoTask, partInactiveTask, partPositionNone];
+
+        _bikeRepoMock
+            .Setup(r => r.GetByIdAsync(bike.Id))
+            .ReturnsAsync(bike);
+
+        var sut = CreateSut();
+
+        var result = await sut.EvaluateBikePartPositionStatusAsync(bike.Id);
+
+        result.Should().NotBeNull();
+        result!.Should().BeEmpty();
+        _journeyRepoMock.VerifyNoOtherCalls(); // should not calculate distances for skipped parts
+    }
+
+    [Fact]
+    public async Task EvaluateBikePartPositionStatusAsync_ReturnsOk_WhenDueDateIsAfterOneMonth()
+    {
+        // Arrange
+        var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = DateTime.Today.AddDays(-200) };
+        var latestServiceDate = DateOnly.FromDateTime(DateTime.Today.AddDays(-5));
+
+        // dueDate = latestServiceDate + 60 days -> definitely > today+30
+        var part = CreateActivePart(bike, BikePartPosition.FrontWheelRim, latestServiceDate, daysInterval: 60);
+        bike.Parts = [part];
+
+        _bikeRepoMock
+            .Setup(r => r.GetByIdAsync(bike.Id))
+            .ReturnsAsync(bike);
+
+        _journeyRepoMock
+            .Setup(r => r.GetDistanceAfterDateByBikeId(bike.Id, latestServiceDate))
+            .ReturnsAsync(100);
+    }
+
+    private static BikePart CreateActivePart(
+        Bike bike,
+        BikePartPosition position,
+        DateOnly latestServiceDate,
+        int daysInterval)
+    {
+        var part = new BikePart
+        {
+            Id = Guid.NewGuid(),
+            Bike = bike,
+            Position = position,
+            ServiceEvents = [],
+        };
+
+        part.MaintenanceTask = new MaintenanceTask
+        {
+            BikePart = part,
+            IsActive = true,
+
+            // Make CalculateNextServiceDueDate deterministic: only days interval active
+            IsDaysIntervalActive = true,
+            IsDistanceIntervalActive = false,
+            DaysInterval = daysInterval
+        };
+
+        part.ServiceEvents.Add(CreateServiceEvent(part, cost: 10, dateOfService: latestServiceDate));
+        return part;
     }
 }

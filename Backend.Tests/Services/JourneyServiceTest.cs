@@ -1,5 +1,6 @@
 using AutoMapper;
 using Backend.Dtos;
+using Backend.Mapping;
 using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
@@ -21,8 +22,7 @@ public class JourneyServiceTests
         var loggerFactory = LoggerFactory.Create(b => { });
         var cfg = new MapperConfiguration(c =>
         {
-            c.CreateMap<Journey, JourneyDto>()
-                .ForMember(d => d.BikeId, o => o.MapFrom(s => s.Bike.Id));
+            c.AddProfile(new JourneyProfile());
         }, loggerFactory);
         cfg.AssertConfigurationIsValid();
 

@@ -1,5 +1,6 @@
 using AutoMapper;
 using Backend.Dtos;
+using Backend.Mapping;
 using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
@@ -20,7 +21,7 @@ public class MaintenanceTaskServiceTests
         var loggerFactory = LoggerFactory.Create(b => { });
         var cfg = new MapperConfiguration(c =>
         {
-            c.CreateMap<MaintenanceTask, MaintenanceTaskDto>();
+            c.AddProfile(new MaintenanceTaskProfile());
         }, loggerFactory);
         cfg.AssertConfigurationIsValid();
         _mapper = cfg.CreateMapper();

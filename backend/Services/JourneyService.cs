@@ -37,13 +37,8 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
             return null;
         }
 
-        var createdJourney = new Journey
-        {
-            Bike = bike,
-            Title = journey.Title,
-            Distance = journey.Distance,
-            JourneyDate = journey.JourneyDate,
-        };
+        var createdJourney = mapper.Map<Journey>(journey);
+        createdJourney.Bike = bike;
 
         journeyRepository.Add(createdJourney);
         await journeyRepository.SaveChangesAsync();
@@ -59,13 +54,8 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
             return null;
         }
 
-        var createdJourneys = journeys.Select(journey => new Journey
-        {
-            Bike = bike,
-            Title = journey.Title,
-            Distance = journey.Distance,
-            JourneyDate = journey.JourneyDate,
-        }).ToList();
+        var createdJourneys = mapper.Map<List<Journey>>(journeys);
+        createdJourneys.ForEach(journey => journey.Bike = bike);
 
         journeyRepository.AddRange(createdJourneys);
         await journeyRepository.SaveChangesAsync();
@@ -84,6 +74,7 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
         existingJourney.Title = journey.Title;
         existingJourney.Distance = journey.Distance;
         existingJourney.JourneyDate = journey.JourneyDate;
+        existingJourney.ExternalId = journey.ExternalId;
 
         journeyRepository.Update(existingJourney);
         await journeyRepository.SaveChangesAsync();

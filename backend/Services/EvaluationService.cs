@@ -6,7 +6,7 @@ using Backend.Repositories;
 
 namespace Backend.Services;
 
-public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyRepository journeyRepository) : IEvaluationService
+public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyRepository journeyRepository, IBikeRepository bikeRepository) : IEvaluationService
 {
     public async Task<BikePartEvaluationDto?> EvaluateBikePartAsync(Guid bikePartId)
     {
@@ -20,18 +20,57 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
 
         // if there is no maintenance task, we cannot predict the next service due date
         var maintenanceTask = bikePart.MaintenanceTask;
-        if (maintenanceTask == null)
+        if (maintenanceTask == null || !maintenanceTask.IsActive)
         {
             return evaluationSinceLastService;
         }
 
         var nextServiceDueDate = CalculateNextServiceDueDate(bikePart, maintenanceTask, evaluationSinceLastService);
-
         return evaluationSinceLastService with
         {
             NextServiceDueDate = nextServiceDueDate
         };
 
+    }
+
+    public async Task<List<BikePartPositionStatus>?> EvaluateBikePartPositionStatusAsync(Guid bikeId)
+    {
+        var bike = await bikeRepository.GetByIdAsync(bikeId);
+        if (bike == null)
+        {
+            return null;
+        }
+
+        var bikePartPositionStatus = new List<BikePartPositionStatus>();
+
+        foreach (var bikePart in bike.Parts)
+        {
+            if (bikePart.MaintenanceTask == null || !bikePart.MaintenanceTask.IsActive || bikePart.Position == BikePartPosition.NONE)
+                continue;
+
+            var dueDate = CalculateNextServiceDueDate(bikePart, bikePart.MaintenanceTask, await CalculateSinceLastService(bikePart));
+
+            if (dueDate == null) continue;
+
+            var now = DateOnly.FromDateTime(DateTime.Today);
+            // due date is already passed
+            if (now.CompareTo(dueDate) >= 0)
+            {
+                bikePartPositionStatus.Add(GenerateStatus(bikePart, Status.CRITICAL));
+                continue;
+            }
+
+            var inOneMonth = DateOnly.FromDateTime(DateTime.Today.AddDays(30));
+            // if inOneMonth is earlier than due date
+            if (inOneMonth.CompareTo(dueDate) < 0)
+                bikePartPositionStatus.Add(GenerateStatus(bikePart, Status.OK));
+            else
+                bikePartPositionStatus.Add(GenerateStatus(bikePart, Status.WARNING));
+
+
+        }
+
+        return bikePartPositionStatus;
     }
 
     private async Task<BikePartEvaluationDto> CalculateSinceLastService(BikePart bikePart)
@@ -91,5 +130,10 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
         var serviceEvents = bikePart.ServiceEvents;
         var latestServiceEvent = serviceEvents.OrderByDescending(se => se.DateOfService).FirstOrDefault();
         return latestServiceEvent?.DateOfService ?? DateOnly.FromDateTime(bikePart.Bike.CreatedAtUtc);
+    }
+
+    private static BikePartPositionStatus GenerateStatus(BikePart bikePart, Status status)
+    {
+        return new BikePartPositionStatus { Position = bikePart.Position, Status = status };
     }
 }

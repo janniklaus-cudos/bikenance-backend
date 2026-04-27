@@ -2,6 +2,7 @@ using System.ComponentModel;
 using AutoMapper;
 using Backend.Data;
 using Backend.Dtos;
+using Backend.Mapping;
 using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
@@ -23,7 +24,7 @@ public class BikePartServiceTests
         var loggerFactory = LoggerFactory.Create(b => { });
         var cfg = new MapperConfiguration(c =>
         {
-            c.CreateMap<BikePart, BikePartDto>();
+            c.AddProfile(new BikePartProfile());
         }, loggerFactory);
         cfg.AssertConfigurationIsValid();
         _mapper = cfg.CreateMapper();

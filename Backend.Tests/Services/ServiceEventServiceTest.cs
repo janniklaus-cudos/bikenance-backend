@@ -2,6 +2,7 @@ using System.ComponentModel;
 using AutoMapper;
 using Backend.Data;
 using Backend.Dtos;
+using Backend.Mapping;
 using Backend.Models;
 using Backend.Repositories;
 using Backend.Services;
@@ -25,10 +26,7 @@ public class ServiceEventServiceTests
         var loggerFactory = LoggerFactory.Create(b => { });
         var cfg = new MapperConfiguration(c =>
         {
-            c.CreateMap<ServiceEvent, ServiceEventDto>()
-                .ForMember(dto => dto.BikePartId, opt => opt.MapFrom(model => model.BikePart.Id));
-            c.CreateMap<ServiceEventDto, ServiceEvent>()
-                .ForMember(model => model.BikePart, opt => opt.Ignore());
+            c.AddProfile(new ServiceEventProfile());
         }, loggerFactory);
         cfg.AssertConfigurationIsValid();
         _mapper = cfg.CreateMapper();
