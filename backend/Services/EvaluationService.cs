@@ -45,7 +45,7 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
 
         foreach (var bikePart in bike.Parts)
         {
-            if (bikePart.MaintenanceTask == null || !bikePart.MaintenanceTask.IsActive || bikePart.Position == BikePartPosition.NONE)
+            if (bikePart.MaintenanceTask == null || !bikePart.MaintenanceTask.IsActive)
                 continue;
 
             var dueDate = CalculateNextServiceDueDate(bikePart, bikePart.MaintenanceTask, await CalculateSinceLastService(bikePart));
@@ -134,6 +134,6 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
 
     private static BikePartPositionStatus GenerateStatus(BikePart bikePart, Status status)
     {
-        return new BikePartPositionStatus { Position = bikePart.Position, Status = status };
+        return new BikePartPositionStatus { BikePartId = bikePart.Id, Position = bikePart.Position, Status = status };
     }
 }

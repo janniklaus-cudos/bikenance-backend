@@ -343,7 +343,7 @@ public class EvaluationServiceTests
     }
 
     [Fact]
-    public async Task EvaluateBikePartPositionStatusAsync_SkipsParts_WhenNoTaskOrNotActiveOrPositionNone()
+    public async Task EvaluateBikePartPositionStatusAsync_SkipsParts_WhenNoTaskOrNotActive()
     {
         var bike = new Bike { Id = Guid.NewGuid(), CreatedAtUtc = DateTime.Today.AddDays(-30) };
 
@@ -353,10 +353,7 @@ public class EvaluationServiceTests
         var partInactiveTask = new BikePart { Id = Guid.NewGuid(), Bike = bike, Position = BikePartPosition.RearWheelRim };
         partInactiveTask.MaintenanceTask = new MaintenanceTask { BikePart = partInactiveTask, IsActive = false };
 
-        var partPositionNone = new BikePart { Id = Guid.NewGuid(), Bike = bike, Position = BikePartPosition.NONE };
-        partPositionNone.MaintenanceTask = new MaintenanceTask { BikePart = partPositionNone, IsActive = true };
-
-        bike.Parts = [partNoTask, partInactiveTask, partPositionNone];
+        bike.Parts = [partNoTask, partInactiveTask];
 
         _bikeRepoMock
             .Setup(r => r.GetByIdAsync(bike.Id))
@@ -367,7 +364,7 @@ public class EvaluationServiceTests
         var result = await sut.EvaluateBikePartPositionStatusAsync(bike.Id);
 
         result.Should().NotBeNull();
-        result!.Should().BeEmpty();
+        result.Should().BeEmpty();
         _journeyRepoMock.VerifyNoOtherCalls(); // should not calculate distances for skipped parts
     }
 

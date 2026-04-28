@@ -4,6 +4,7 @@ namespace Backend.Dtos;
 
 public record BikePartPositionStatus
 {
+    public Guid BikePartId { get; init; }
     public BikePartPosition Position { get; init; }
     public Status Status { get; init; }
 }

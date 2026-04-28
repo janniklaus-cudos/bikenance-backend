@@ -10,6 +10,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Journey> Journeys => Set<Journey>();
     public DbSet<MaintenanceTask> MaintenanceTasks => Set<MaintenanceTask>();
     public DbSet<ServiceEvent> ServiceEvents => Set<ServiceEvent>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
