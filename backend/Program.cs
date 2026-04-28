@@ -36,6 +36,7 @@ builder.Services.AddAuthentication(options =>
 });
 
 // ASP.NET Core services
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllers(options =>
     {
         var policy = new AuthorizationPolicyBuilder()
@@ -116,7 +117,6 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
-    await DbSeeder.SeedAsync(db);
 }
 
 app.UseHttpsRedirection();

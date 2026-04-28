@@ -24,4 +24,7 @@ public class Bike
 
     [Required]
     public virtual List<BikePart> Parts { get; set; } = [];
+
+    [Required]
+    public virtual User Owner { get; set; } = null!;
 }

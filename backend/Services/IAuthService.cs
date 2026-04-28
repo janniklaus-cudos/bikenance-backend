@@ -4,5 +4,5 @@ namespace Backend.Services;
 
 public interface IAuthService
 {
-    Task<UserDto> ValidateGoogleToken(string token);
+    Task<UserDto?> ValidateGoogleToken(string token);
 }

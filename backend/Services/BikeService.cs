@@ -6,7 +6,7 @@ using Backend.Repositories;
 
 namespace Backend.Services;
 
-public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePartService bikePartService) : IBikeService
+public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePartService bikePartService, IUserRepository userRepository) : IBikeService
 {
     public async Task<BikeDto> GetByIdAsync(Guid id)
     {
@@ -22,13 +22,20 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
         return mapper.Map<List<BikeDto>>(bikes);
     }
 
-    public async Task<BikeDto> AddAsync(BikeDto bike)
+    public async Task<BikeDto?> AddAsync(BikeDto bike)
     {
+        var owner = await userRepository.GetByIdAsync(bike.OwnerId);
+        if (owner == null)
+        {
+            return null;
+        }
+
         var createdBike = new Bike
         {
             Name = bike.Name,
             Brand = bike.Brand,
-            IconId = bike.IconId
+            IconId = bike.IconId,
+            Owner = owner
         };
 
         bikeRepository.Add(createdBike);

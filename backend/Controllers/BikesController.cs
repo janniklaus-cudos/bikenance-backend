@@ -3,6 +3,7 @@ using Backend.Models;
 using Microsoft.AspNetCore.Mvc;
 using Backend.Dtos;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Backend.Controllers;
 
@@ -34,6 +35,10 @@ public class BikesController(IBikeService bikeService) : ControllerBase
     public async Task<IActionResult> Add([FromBody] BikeDto bike)
     {
         var createdBike = await bikeService.AddAsync(bike);
+        if (createdBike is null)
+        {
+            return NotFound();
+        }
 
         return CreatedAtAction(nameof(GetAll), new { }, createdBike);
     }

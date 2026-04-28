@@ -1,3 +1,5 @@
+using Backend.Models;
+
 namespace Backend.Dtos;
 
 public record BikeDto
@@ -8,4 +10,5 @@ public record BikeDto
     public int IconId { get; init; }
     public DateTime CreatedAtUtc { get; init; }
     public List<BikePartDto> Parts { get; init; } = [];
+    public Guid OwnerId { get; init; }
 }

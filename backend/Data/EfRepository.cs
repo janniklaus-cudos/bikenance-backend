@@ -6,8 +6,6 @@ public class EfRepository<T>(AppDbContext db) : IRepository<T> where T : class
 {
     protected readonly AppDbContext _db = db;
 
-    public IQueryable<T> Query() => _db.Set<T>();
-
     public Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         _db.Set<T>().FindAsync([id], ct).AsTask();
 
