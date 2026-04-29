@@ -13,4 +13,8 @@ public class JourneyRepository(AppDbContext db) : EfRepository<Journey>(db), IJo
     public Task<int> GetDistanceAfterDateByBikeId(Guid bikeId, DateOnly date, CancellationToken ct = default) =>
         _db.Journeys.Where(journey => journey.Bike.Id == bikeId && journey.JourneyDate.CompareTo(date) >= 0)
                     .SumAsync(journey => journey.Distance, ct);
+
+    public Task<int> GetDistanceBeforeDateByBikeId(Guid bikeId, DateOnly date, CancellationToken ct = default) =>
+        _db.Journeys.Where(journey => journey.Bike.Id == bikeId && journey.JourneyDate.CompareTo(date) <= 0)
+                    .SumAsync(journey => journey.Distance, ct);
 }

@@ -20,6 +20,12 @@ public class Bike
     public int IconId { get; set; } = 0;
 
     [Required]
+    public int Price { get; set; } = 0;
+
+    [Required]
+    public DateOnly DateOfPurchase { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+
+    [Required]
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
     [Required]

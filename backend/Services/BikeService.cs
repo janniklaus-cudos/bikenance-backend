@@ -47,6 +47,8 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
             Name = bike.Name,
             Brand = bike.Brand,
             IconId = bike.IconId,
+            Price = bike.Price,
+            DateOfPurchase = bike.DateOfPurchase,
             Owner = owner
         };
 
@@ -71,6 +73,8 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
         existingBike.Name = bike.Name;
         existingBike.Brand = bike.Brand;
         existingBike.IconId = bike.IconId;
+        existingBike.Price = bike.Price;
+        existingBike.DateOfPurchase = bike.DateOfPurchase;
 
         bikeRepository.Update(existingBike);
         await bikeRepository.SaveChangesAsync();

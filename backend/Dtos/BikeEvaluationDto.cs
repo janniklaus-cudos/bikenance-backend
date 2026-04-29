@@ -17,4 +17,5 @@ public record BikePartSummary
     public int TotalServices { get; init; }
     public int TotalCost { get; init; }
     public int? AverageDaysServiceInterval { get; init; }
+    public int? AverageDistanceServiceInterval { get; init; }
 }
