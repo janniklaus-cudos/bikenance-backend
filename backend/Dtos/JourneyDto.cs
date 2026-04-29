@@ -10,4 +10,6 @@ public record JourneyDto
     public DateOnly JourneyDate { get; init; }
     public DateTime CreatedAtUtc { get; init; }
 
+    public Guid RepeatJourneyId { get; init; }
+    public bool IsConnectedToRepeatJourney { get; set; } = true;
 }

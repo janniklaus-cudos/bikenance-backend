@@ -26,4 +26,9 @@ public class Journey
 
     [Required]
     public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
+
+
+
+    public virtual RepeatJourney? RepeatJourney { get; set; }
+    public bool IsConnectedToRepeatJourney { get; set; } = true;
 }

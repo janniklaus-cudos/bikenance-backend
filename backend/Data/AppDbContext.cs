@@ -11,6 +11,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<MaintenanceTask> MaintenanceTasks => Set<MaintenanceTask>();
     public DbSet<ServiceEvent> ServiceEvents => Set<ServiceEvent>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<RepeatJourney> RepeatJourneys => Set<RepeatJourney>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

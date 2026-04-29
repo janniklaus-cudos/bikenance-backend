@@ -9,6 +9,7 @@ public interface IJourneyService
 {
     Task<JourneyDto?> GetByIdAsync(Guid id);
     Task<IEnumerable<JourneyDto>?> GetAllByBikeIdAsync(Guid bikeId);
+    Task<IEnumerable<RepeatJourneyDto>?> GetAllRepeatByBikeIdAsync(Guid bikeId);
     Task<JourneyDto?> AddAsync(Guid bikeId, JourneyDto journey);
     Task<IEnumerable<JourneyDto>?> AddAllAsync(Guid bikeId, IEnumerable<JourneyDto> journeys);
     Task<JourneyDto?> UpdateAsync(Guid id, JourneyDto journey);
@@ -16,7 +17,7 @@ public interface IJourneyService
     Task<bool> DeleteAllByBikeIdAsync(Guid bikeId);
 }
 
-public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository, IBikeRepository bikeRepository) : IJourneyService
+public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository, IBikeRepository bikeRepository, IRepeatJourneyRepository repeatJourneyRepository) : IJourneyService
 {
     public async Task<JourneyDto?> GetByIdAsync(Guid id)
     {
@@ -39,6 +40,18 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
 
         return mapper.Map<List<JourneyDto>>(journeys);
     }
+
+    public async Task<IEnumerable<RepeatJourneyDto>?> GetAllRepeatByBikeIdAsync(Guid bikeId)
+    {
+        var repeatJourneys = await repeatJourneyRepository.GetAllByBikeIdAsync(bikeId);
+        if (repeatJourneys == null)
+        {
+            return null;
+        }
+
+        return mapper.Map<List<RepeatJourneyDto>>(repeatJourneys);
+    }
+
 
     public async Task<JourneyDto?> AddAsync(Guid bikeId, JourneyDto journey)
     {
@@ -86,6 +99,7 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
         existingJourney.Distance = journey.Distance;
         existingJourney.JourneyDate = journey.JourneyDate;
         existingJourney.ExternalId = journey.ExternalId;
+        existingJourney.IsConnectedToRepeatJourney = journey.IsConnectedToRepeatJourney;
 
         journeyRepository.Update(existingJourney);
         await journeyRepository.SaveChangesAsync();
