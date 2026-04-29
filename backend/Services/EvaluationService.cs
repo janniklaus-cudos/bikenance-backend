@@ -8,14 +8,66 @@ namespace Backend.Services;
 
 public interface IEvaluationService
 {
+    Task<BikeEvaluationDto?> EvaluateBikeAsync(Guid bikeId);
     Task<BikePartEvaluationDto?> EvaluateBikePartAsync(Guid bikePartId);
-
     Task<List<BikePartPositionStatus>?> EvaluateBikePartPositionStatusAsync(Guid bikeId);
 
 }
 
-public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyRepository journeyRepository, IBikeRepository bikeRepository) : IEvaluationService
+public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyRepository journeyRepository, IBikeRepository bikeRepository, IServiceEventRepository serviceEventRepository) : IEvaluationService
 {
+
+    public async Task<BikeEvaluationDto?> EvaluateBikeAsync(Guid bikeId)
+    {
+        var bike = await bikeRepository.GetByIdAsync(bikeId);
+        if (bike == null)
+        {
+            return null;
+        }
+
+        var serviceEvents = await serviceEventRepository.GetAllByBikeIdAsync(bikeId);
+        var totalCosts = serviceEvents.Sum(se => se.Cost);
+        var totalDistance = await journeyRepository.GetDistanceAfterDateByBikeId(bikeId, DateOnly.FromDateTime(bike.CreatedAtUtc));
+        double costPerDistance = 0;
+        if (totalDistance != 0)
+        {
+            costPerDistance = Math.Round((double)totalCosts / totalDistance, 2, MidpointRounding.AwayFromZero);
+        }
+
+        var bikeParts = await bikePartRepository.GetAllByBikeIdAsync(bikeId);
+        var bikePartSummaries = new List<BikePartSummary>();
+        bikeParts.ForEach(bikePart =>
+        {
+            var bikePartServiceEventsCount = bikePart.ServiceEvents.Count;
+            var daysSinceBikeCreation = (DateTime.Now.Date - bike.CreatedAtUtc.Date).Days;
+            int? averageDaysServiceIntervals = bikePartServiceEventsCount != 0
+                                                ? (int)Math.Round((double)daysSinceBikeCreation / bikePartServiceEventsCount, 0, MidpointRounding.AwayFromZero)
+                                                : null;
+
+            bikePartSummaries.Add(
+                new BikePartSummary
+                {
+                    Name = bikePart.Name,
+                    TotalServices = bikePartServiceEventsCount,
+                    TotalCost = bikePart.ServiceEvents.Sum(bp => bp.Cost),
+                    AverageDaysServiceInterval = averageDaysServiceIntervals
+                });
+        });
+
+
+        var evaluation = new BikeEvaluationDto
+        {
+            BikeId = bike.Id,
+            BikeName = bike.Name,
+            TotalServiceEvents = serviceEvents.Count,
+            TotalCost = totalCosts,
+            CostPerDistance = costPerDistance,
+            BikePartSummaries = bikePartSummaries
+        };
+
+        return evaluation;
+    }
+
     public async Task<BikePartEvaluationDto?> EvaluateBikePartAsync(Guid bikePartId)
     {
         var bikePart = await bikePartRepository.GetByIdAsync(bikePartId);
@@ -89,13 +141,20 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
         var daysSinceLastService = DateTime.Today.Subtract(latestKnownDate.ToDateTime(TimeOnly.MinValue)).Days;
         var distanceSinceLastService = await journeyRepository.GetDistanceAfterDateByBikeId(bikePart.Bike.Id, latestKnownDate);
         int? averageCostPerService = null;
-        if (serviceEvents?.Count > 0) averageCostPerService = (int)Math.Round(serviceEvents.Average(se => se.Cost), 0, MidpointRounding.AwayFromZero);
+        int? totalCost = null;
+        if (serviceEvents?.Count > 0)
+        {
+            totalCost = serviceEvents.Sum(se => se.Cost);
+            averageCostPerService = (int)Math.Round((float)totalCost / serviceEvents.Count, 0, MidpointRounding.AwayFromZero);
+        }
+
 
         return new BikePartEvaluationDto
         {
             DaysSinceLastService = daysSinceLastService,
             DistanceSinceLastService = distanceSinceLastService,
             AverageCostPerService = averageCostPerService,
+            TotalCost = totalCost,
         };
     }
 
@@ -105,7 +164,9 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
 
         var daysIntervalDueDate = latestKnownDate.AddDays(maintenanceTask.DaysInterval);
 
-        var distancePercentageUntilNextService = (double)evaluationDto.DistanceSinceLastService / maintenanceTask.DistanceInterval;
+        var latestService = GetLatestServiceEvent(bikePart);
+        var stateAfterLastService = latestService != null ? (double)latestService.StateAfterService / 100 : 1;
+        var distancePercentageUntilNextService = (double)evaluationDto.DistanceSinceLastService / maintenanceTask.DistanceInterval + (1 - stateAfterLastService);
         // if we have no distance since the last service, we cannot predict when the distance limit will be achieved
         // this could be changed by calculating the average km/month with all journeys, but this is a feature for later
         var distanceIntervalDueDate = DateOnly.MaxValue;
@@ -135,9 +196,15 @@ public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyR
 
     private static DateOnly CalculateLatestServiceEventDate(BikePart bikePart)
     {
-        var serviceEvents = bikePart.ServiceEvents;
-        var latestServiceEvent = serviceEvents.OrderByDescending(se => se.DateOfService).FirstOrDefault();
+        var latestServiceEvent = GetLatestServiceEvent(bikePart);
         return latestServiceEvent?.DateOfService ?? DateOnly.FromDateTime(bikePart.Bike.CreatedAtUtc);
+    }
+
+    private static ServiceEvent? GetLatestServiceEvent(BikePart bikePart)
+    {
+        var serviceEvents = bikePart.ServiceEvents;
+        if (serviceEvents != null && serviceEvents.Count != 0) return serviceEvents.OrderByDescending(se => se.DateOfService).FirstOrDefault();
+        return null;
     }
 
     private static BikePartPositionStatus GenerateStatus(BikePart bikePart, Status status)

@@ -10,8 +10,13 @@ public class EvaluationController(IEvaluationService evaluationService) : Contro
     [HttpGet("bike/{bikeId}")]
     public async Task<IActionResult> GetBikeEvaluation(Guid bikeId)
     {
-        // todo implement
-        throw new NotImplementedException();
+        var bikeEvaluation = await evaluationService.EvaluateBikeAsync(bikeId);
+        if (bikeEvaluation is null)
+        {
+            return NotFound();
+        }
+
+        return Ok(bikeEvaluation);
     }
 
     [HttpGet("bikePart/{bikePartId}")]
