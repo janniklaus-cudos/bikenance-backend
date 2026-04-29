@@ -3,6 +3,11 @@ using Backend.Models;
 
 namespace Backend.Repositories;
 
+public interface IUserRepository : IRepository<User>
+{
+    Task<User?> GetByEmailAsync(string email);
+}
+
 public class UserRepository(AppDbContext db) : EfRepository<User>(db), IUserRepository
 {
     public async Task<User?> GetByEmailAsync(string email) =>
