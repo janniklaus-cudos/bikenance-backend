@@ -5,7 +5,6 @@ namespace Backend.Data;
 
 public interface IRepository<T> where T : class
 {
-    DatabaseFacade GetDatabase();
     Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<List<T>> GetAllAsync(CancellationToken ct = default);
 

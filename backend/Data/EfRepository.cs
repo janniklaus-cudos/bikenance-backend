@@ -7,11 +7,6 @@ public class EfRepository<T>(AppDbContext db) : IRepository<T> where T : class
 {
     protected readonly AppDbContext _db = db;
 
-    public DatabaseFacade GetDatabase()
-    {
-        return _db.Database;
-    }
-
     public Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
         _db.Set<T>().FindAsync([id], ct).AsTask();
 
