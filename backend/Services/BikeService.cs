@@ -3,6 +3,7 @@ using Backend.Models;
 using Backend.Dtos;
 using AutoMapper;
 using Backend.Repositories;
+using System.Transactions;
 
 namespace Backend.Services;
 
@@ -39,6 +40,8 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
             return null;
         }
 
+
+        var transaction = await bikeRepository.GetDatabase().BeginTransactionAsync();
         var createdBike = new Bike
         {
             Name = bike.Name,
@@ -51,6 +54,7 @@ public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePa
         await bikeRepository.SaveChangesAsync();
 
         await bikePartService.AddAllByBikeIdAsync(createdBike.Id, bike.Parts);
+        await transaction.CommitAsync();
 
         return mapper.Map<BikeDto>(createdBike);
     }

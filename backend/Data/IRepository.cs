@@ -1,8 +1,11 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+
 namespace Backend.Data;
 
 public interface IRepository<T> where T : class
 {
-
+    DatabaseFacade GetDatabase();
     Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<List<T>> GetAllAsync(CancellationToken ct = default);
 
