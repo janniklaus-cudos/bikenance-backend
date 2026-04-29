@@ -6,6 +6,15 @@ using Backend.Repositories;
 
 namespace Backend.Services;
 
+public interface IBikeService
+{
+    Task<BikeDto> GetByIdAsync(Guid id);
+    Task<List<BikeDto>> GetAllAsync();
+    Task<BikeDto?> AddAsync(BikeDto bike);
+    Task<BikeDto?> UpdateAsync(Guid id, BikeDto bike);
+    Task<bool> DeleteAsync(Guid id);
+}
+
 public class BikeService(IMapper mapper, IBikeRepository bikeRepository, IBikePartService bikePartService, IUserRepository userRepository) : IBikeService
 {
     public async Task<BikeDto> GetByIdAsync(Guid id)

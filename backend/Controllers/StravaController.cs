@@ -3,6 +3,7 @@ using AutoMapper;
 using Backend.Dtos;
 using Backend.Integrations.Strava;
 using Backend.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
@@ -11,6 +12,7 @@ namespace Backend.Controllers;
 [Route("api/[controller]")]
 public class StravaController(StravaClient strava, StravaTokenStore store, IMapper mapper) : ControllerBase
 {
+    [AllowAnonymous]
     [HttpGet("connect")]
     public IActionResult Connect()
     {
@@ -20,7 +22,7 @@ public class StravaController(StravaClient strava, StravaTokenStore store, IMapp
         return Redirect(url);
     }
 
-    // redirect URI: Strava calls this after authentication
+    [AllowAnonymous]
     [HttpGet("callback")]
     public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string? state, CancellationToken ct)
     {

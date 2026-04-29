@@ -6,6 +6,14 @@ using Backend.Repositories;
 
 namespace Backend.Services;
 
+public interface IEvaluationService
+{
+    Task<BikePartEvaluationDto?> EvaluateBikePartAsync(Guid bikePartId);
+
+    Task<List<BikePartPositionStatus>?> EvaluateBikePartPositionStatusAsync(Guid bikeId);
+
+}
+
 public class EvaluationService(IBikePartRepository bikePartRepository, IJourneyRepository journeyRepository, IBikeRepository bikeRepository) : IEvaluationService
 {
     public async Task<BikePartEvaluationDto?> EvaluateBikePartAsync(Guid bikePartId)

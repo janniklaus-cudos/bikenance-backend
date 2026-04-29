@@ -11,6 +11,12 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Backend.Services;
 
+public interface IAuthService
+{
+    Task<UserDto?> ValidateGoogleToken(string token);
+}
+
+
 public class AuthService(IConfiguration _config, IUserRepository userRepository, IMapper _mapper) : IAuthService
 {
     public async Task<UserDto?> ValidateGoogleToken(string token)
