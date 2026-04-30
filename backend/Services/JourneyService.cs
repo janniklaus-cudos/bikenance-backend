@@ -61,8 +61,14 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
             return null;
         }
 
-        var createdJourney = mapper.Map<Journey>(journey);
-        createdJourney.Bike = bike;
+        var mappedJourney = mapper.Map<Journey>(journey);
+        var createdJourney = new Journey
+        {
+            Bike = bike,
+            Title = mappedJourney.Title,
+            Distance = mappedJourney.Distance,
+            JourneyDate = mappedJourney.JourneyDate,
+        };
 
         journeyRepository.Add(createdJourney);
         await journeyRepository.SaveChangesAsync();
@@ -79,7 +85,17 @@ public class JourneyService(IMapper mapper, IJourneyRepository journeyRepository
         }
 
         var createdJourneys = mapper.Map<List<Journey>>(journeys);
-        createdJourneys.ForEach(journey => journey.Bike = bike);
+        createdJourneys.ForEach(journey =>
+        {
+            var createdJourney = new Journey
+            {
+                Bike = bike,
+                Title = journey.Title,
+                Distance = journey.Distance,
+                JourneyDate = journey.JourneyDate,
+            };
+            journeyRepository.Add(createdJourney);
+        });
 
         journeyRepository.AddRange(createdJourneys);
         await journeyRepository.SaveChangesAsync();

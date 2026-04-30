@@ -30,5 +30,5 @@ public class Journey
 
 
     public virtual RepeatJourney? RepeatJourney { get; set; }
-    public bool IsConnectedToRepeatJourney { get; set; } = true;
+    public bool IsConnectedToRepeatJourney { get; set; } = false;
 }

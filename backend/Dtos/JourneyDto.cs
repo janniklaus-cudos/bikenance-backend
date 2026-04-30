@@ -11,5 +11,5 @@ public record JourneyDto
     public DateTime CreatedAtUtc { get; init; }
 
     public Guid RepeatJourneyId { get; init; }
-    public bool IsConnectedToRepeatJourney { get; set; } = true;
+    public bool IsConnectedToRepeatJourney { get; set; } = false;
 }

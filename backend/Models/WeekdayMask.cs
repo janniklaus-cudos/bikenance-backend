@@ -1,6 +1,8 @@
 
 // Example: Mon+Wed+Fri = 1 + 4 + 16 = 21.
 
+namespace Backend.Models;
+
 [Flags]
 public enum WeekdayMask
 {

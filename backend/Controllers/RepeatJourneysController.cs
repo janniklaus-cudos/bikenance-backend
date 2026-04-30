@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Backend.Dtos;
 using Backend.Repositories;
 using Backend.Services;
@@ -13,48 +14,60 @@ public class RepeatJourneysController(IRepeatJourneyService repeatJourneyService
     [HttpGet]
     public async Task<IActionResult> GetAllByBikeId([FromQuery] Guid bikeId)
     {
-        var repeatJourneys = await repeatJourneyService.GetAllByBikeIdAsync(bikeId);
-        if (repeatJourneys is null)
+        try
         {
-            return NotFound();
-        }
+            var repeatJourneys = await repeatJourneyService.GetAllByBikeIdAsync(bikeId);
 
-        return Ok(repeatJourneys);
+            return Ok(repeatJourneys);
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpPost]
     public async Task<IActionResult> Add([FromQuery] Guid bikeId, [FromBody] RepeatJourneyDto journey)
     {
-        var createdRepeatJourney = await repeatJourneyService.AddAsync(bikeId, journey);
-        if (createdRepeatJourney is null)
+        try
         {
-            return NotFound();
-        }
+            var createdRepeatJourney = await repeatJourneyService.AddAsync(bikeId, journey);
 
-        return CreatedAtAction(nameof(GetAllByBikeId), new { bikeId }, createdRepeatJourney);
+            return CreatedAtAction(nameof(GetAllByBikeId), new { bikeId }, createdRepeatJourney);
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] RepeatJourneyDto journey)
     {
-        var updatedRepeatJourney = await repeatJourneyService.UpdateAsync(id, journey);
-        if (updatedRepeatJourney is null)
+        try
         {
-            return NotFound();
-        }
+            var updatedRepeatJourney = await repeatJourneyService.UpdateAsync(id, journey);
 
-        return Ok(updatedRepeatJourney);
+            return Ok(updatedRepeatJourney);
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var deleted = await repeatJourneyService.DeleteAsync(id);
-        if (!deleted)
+        try
         {
-            return NotFound();
-        }
+            await repeatJourneyService.DeleteAsync(id);
 
-        return NoContent();
+            return NoContent();
+        }
+        catch (ValidationException e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 }
