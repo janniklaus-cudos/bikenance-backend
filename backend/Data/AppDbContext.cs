@@ -24,5 +24,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<BikePart>()
             .Property(x => x.Position)
             .HasConversion<string>();
+
+        modelBuilder.Entity<RepeatJourney>()
+            .Property(x => x.RepeatType)
+            .HasConversion<string>();
     }
 }

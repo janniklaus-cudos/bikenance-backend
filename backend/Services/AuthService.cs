@@ -55,7 +55,8 @@ public class AuthService(IConfiguration _config, IUserRepository userRepository,
 
     private void GenerateJwtToken(User user)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Auth:Jwt:Key"]));
+        var storedKey = _config["Auth:Jwt:Key"] ?? throw new Exception("Auth:Jwt:Key not accessible");
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(storedKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]

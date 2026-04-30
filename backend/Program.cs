@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Backend.Jobs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +32,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Auth:Jwt:Issuer"],
         ValidAudience = builder.Configuration["Auth:Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Auth:Jwt:Key"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["Auth:Jwt:Key"]!))
     };
 });
 
@@ -59,7 +60,7 @@ builder.Services.AddDbContext<AppDbContext>(opt =>
 builder.Services.Scan(scan => scan
     // servicees
     .FromAssemblyOf<BikeService>()
-    .AddClasses(classes => classes.Where(t => t.Name.EndsWith("Service")))
+    .AddClasses(classes => classes.Where(t => t.Name.EndsWith("Service") && !typeof(IHostedService).IsAssignableFrom(t)))
     .AsImplementedInterfaces()
     .WithScopedLifetime()
     // repositories
@@ -68,7 +69,16 @@ builder.Services.Scan(scan => scan
     .AsImplementedInterfaces()
     .WithScopedLifetime()
 );
+builder.Services.Scan(scan => scan
+    // jobs
+    .FromAssemblyOf<RepeatJourneyGenerationJob>()
+    .AddClasses(classes => classes.Where(t => t.Name.EndsWith("Job")))
+    .AsImplementedInterfaces()
+    .WithScopedLifetime()
+);
 builder.Services.AddScoped(typeof(IRepository<>), typeof(EfRepository<>));
+// job generator
+builder.Services.AddHostedService<JobGenerationService>();
 
 // strava api integration
 builder.Services.AddHttpClient<StravaClient>();
@@ -100,6 +110,7 @@ builder.Services.AddScoped<IMapper>(provider =>
     var config = provider.GetRequiredService<MapperConfiguration>();
     return config.CreateMapper(provider.GetService);
 });
+
 
 var app = builder.Build();
 

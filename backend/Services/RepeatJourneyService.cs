@@ -13,7 +13,9 @@ public interface IRepeatJourneyService
     Task<IEnumerable<RepeatJourneyDto>> GetAllByBikeIdAsync(Guid bikeId);
     Task<RepeatJourneyDto> AddAsync(Guid bikeId, RepeatJourneyDto journey);
     Task<RepeatJourneyDto> UpdateAsync(Guid id, RepeatJourneyDto journey);
-    Task<bool> DeleteAsync(Guid id);
+    Task DeleteAsync(Guid id);
+    Task GenerateAllForToday();
+
 }
 
 public class RepeatJourneyService(IMapper mapper, IRepeatJourneyRepository repeatJourneyRepository, IBikeRepository bikeRepository, IJourneyRepository journeyRepository) : IRepeatJourneyService
@@ -78,7 +80,7 @@ public class RepeatJourneyService(IMapper mapper, IRepeatJourneyRepository repea
         return mapper.Map<RepeatJourneyDto>(existingJourney);
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task DeleteAsync(Guid id)
     {
         var repeatJourney = await repeatJourneyRepository.GetByIdAsync(id) ?? throw new ValidationException("id was not found");
 
@@ -86,8 +88,25 @@ public class RepeatJourneyService(IMapper mapper, IRepeatJourneyRepository repea
 
         repeatJourneyRepository.Remove(repeatJourney);
         await repeatJourneyRepository.SaveChangesAsync();
+    }
 
-        return true;
+    public async Task GenerateAllForToday()
+    {
+        var repeatJourneys = await repeatJourneyRepository.GetAllAsync();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var journeysOfToday = await journeyRepository.GetAllByDate(today);
+        foreach (var repeatJourney in repeatJourneys)
+        {
+            var journeysToAdd = CreateJourneysBetween(repeatJourney, today, today);
+            if (journeysOfToday.Count > 0)
+            {
+                // if the task was aborted during the execution, we want to make sure that there are no duplicates.
+                // so if there are already tasks created today, we check each new task if there is already one with the same repeat journey id => this would be a duplicate and we wont add it
+                journeysToAdd = [.. journeysToAdd.Where(newJourney => journeysOfToday.Find(existingJourney => existingJourney.RepeatJourney == newJourney.RepeatJourney) == null)];
+            }
+            journeyRepository.AddRange(journeysToAdd);
+        }
+        await journeyRepository.SaveChangesAsync();
     }
 
     private async Task AddJourneysStartToNow(RepeatJourney repeatJourney)
